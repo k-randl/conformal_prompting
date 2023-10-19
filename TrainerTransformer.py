@@ -35,17 +35,14 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import numpy.typing as npt
 from typing import Optional, Callable, Tuple, Iterable, Union, Generator, Dict, Any
 
-T_xpnd = Callable[[torch.Tensor, torch.Tensor], Tuple[torch.Tensor,torch.Tensor]]
-
 ####################################################################################################
 # Evaluator Class:                                                                                 #
 ####################################################################################################
 
 class EvaluatorTransformer(Evaluator):
-    def __init__(self, batch_size:int=None, expand_fcn:T_xpnd=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, _num_labels=0) -> None:
+    def __init__(self, batch_size:int=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, _num_labels=0) -> None:
         super().__init__(normalize_fcn=normalize_fcn, num_labels=_num_labels)
         self._batch_size = batch_size
-        self._expand_fcn = expand_fcn
         self._loss_fcn   = loss_fcn
 
     def _init_model(self, model:str, **kwargs):
@@ -107,7 +104,7 @@ class EvaluatorTransformer(Evaluator):
         else: return None
 
     @staticmethod
-    def load(dir:str, num_labels:int, batch_size:int=None, expand_fcn:T_xpnd=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, **kwargs) -> 'EvaluatorTransformer':
+    def load(dir:str, num_labels:int, batch_size:int=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, **kwargs) -> 'EvaluatorTransformer':
         '''Loads a model from disk.
 
             dir:            Path to the directory that contains the model (e.g.: .\models)
@@ -116,8 +113,6 @@ class EvaluatorTransformer(Evaluator):
 
             batch_size:     Batch size: 16, 32 [Devlin et al.]
 
-            expand_fcn:     Obsolete?
-
             normalize_fcn:  Normalization function used on the predictions [`"max"` | `"sum"` | `"min-max"` | `"softmax"` | `None`]
 
 
@@ -125,7 +120,6 @@ class EvaluatorTransformer(Evaluator):
         '''
         evaluator = EvaluatorTransformer(
             batch_size=batch_size,
-            expand_fcn=expand_fcn,
             normalize_fcn=normalize_fcn,
             loss_fcn=loss_fcn,
             _num_labels=num_labels
@@ -173,35 +167,35 @@ class EvaluatorTransformer(Evaluator):
             # without gradient calculation:
             with torch.no_grad():
                 # feed input through model:
-                predictions_tensor = self._model(**kwargs)
-                labels_expanded, predictions_expanded = self._expand_fcn(labels_tensor, predictions_tensor)
+                model_out = self._model(**kwargs)
+                predictions_tensor = model_out['logits']
 
                 if spans_tensor is not None:
                     self._last_spans = [t.detach().to('cpu').numpy() for t in spans_tensor]
                     if output_spans: spans.extend(self._last_spans)
 
-                if hasattr(predictions_tensor, 'attentions'):
-                    if predictions_tensor.attentions is not None:
-                        self._last_attentions = [t.detach().to('cpu').numpy() for t in predictions_tensor.attentions]
+                if hasattr(model_out, 'attentions'):
+                    if model_out.attentions is not None:
+                        self._last_attentions = [t.detach().to('cpu').numpy() for t in model_out.attentions]
                         if output_attentions: attentions.extend(self._last_attentions)
 
-                if hasattr(predictions_tensor, 'hidden_states'):
-                    if predictions_tensor.hidden_states is not None:
-                        self._last_hidden_states = [t.detach().to('cpu').numpy() for t in predictions_tensor.hidden_states]
+                if hasattr(model_out, 'hidden_states'):
+                    if model_out.hidden_states is not None:
+                        self._last_hidden_states = [t.detach().to('cpu').numpy() for t in model_out.hidden_states]
                         if output_hidden_states: hidden_states.extend(self._last_hidden_states)
 
                 # add predictions and labels to lists:
-                predictions.extend(list(predictions_expanded.to('cpu').numpy()))
+                predictions.extend(list(predictions_tensor.to('cpu').numpy()))
                 labels.extend(list(labels_tensor.to('cpu').numpy()))
 
                 # update variables for mean loss calculation:
                 if not (self._loss_fcn is None):
-                    loss = self._loss_fcn(predictions_expanded, labels_expanded)
+                    loss = self._loss_fcn(predictions_tensor.type(torch.float), labels_tensor.type(torch.float))
                     eval_loss += loss.item()
                     n_steps += 1
 
-                elif hasattr(predictions_tensor, 'loss'):
-                    loss = predictions_tensor.loss
+                elif hasattr(model_out, 'loss'):
+                    loss = model_out.loss
                     eval_loss += loss.item()
                     n_steps += 1
 
@@ -225,7 +219,6 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
     def __init__(self,
             num_labels:int,
             batch_size:int,
-            expand_fcn:T_xpnd,
             normalize_fcn:T_norm=None,
             model_dir:str='./model/',
             max_grad_norm:float=1.,
@@ -234,7 +227,6 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
         ) -> None:
         super().__init__(
             batch_size=batch_size,
-            expand_fcn=expand_fcn,
             normalize_fcn=normalize_fcn,
             loss_fcn=loss_fcn,
             _num_labels=num_labels
@@ -311,30 +303,30 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
             if self._loss_fcn is None: kwargs['labels'] = labels_tensor
 
             # feed input through model:
-            predictions_tensor = self._model(**kwargs)
+            model_out = self._model(**kwargs)
 
             if spans_tensor is not None:
                 self._last_spans = [t.detach().to('cpu').numpy() for t in spans_tensor]
                 if output_spans: spans.extend(self._last_spans)
 
-            if hasattr(predictions_tensor, 'attentions'):
-                if predictions_tensor.attentions is not None:
-                    self._last_attentions = [t.detach().to('cpu').numpy() for t in predictions_tensor.attentions]
+            if hasattr(model_out, 'attentions'):
+                if model_out.attentions is not None:
+                    self._last_attentions = [t.detach().to('cpu').numpy() for t in model_out.attentions]
                     if output_attentions: attentions.extend(self._last_attentions)
 
-            if hasattr(predictions_tensor, 'hidden_states'):
-                if predictions_tensor.hidden_states is not None:
-                    self._last_hidden_states = [t.detach().to('cpu').numpy() for t in predictions_tensor.hidden_states]
+            if hasattr(model_out, 'hidden_states'):
+                if model_out.hidden_states is not None:
+                    self._last_hidden_states = [t.detach().to('cpu').numpy() for t in model_out.hidden_states]
                     if output_hidden_states: hidden_states.extend(self._last_hidden_states)
 
             # calculate loss:
             loss = None
             if self._loss_fcn is not None:
-                labels_expanded, predictions_expanded = self._expand_fcn(labels_tensor, predictions_tensor)
-                loss = self._loss_fcn(predictions_expanded, labels_expanded)
+                predictions_tensor = model_out['logits']
+                loss = self._loss_fcn(predictions_tensor.type(torch.float), labels_tensor.type(torch.float))
 
-            elif hasattr(predictions_tensor, 'loss'):
-                loss = predictions_tensor.loss
+            elif hasattr(model_out, 'loss'):
+                loss = model_out.loss
 
             else: raise AttributeError("No loss function defined.")
 
@@ -529,10 +521,6 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
             trainer = TrainerTransformer(
                 num_labels=len(label_map),
                 batch_size=batch_size,
-                expand_fcn=lambda labels, predictions: (
-                    labels.type(torch.float),
-                    predictions['logits']
-                ),
                 loss_fcn=torch.nn.CrossEntropyLoss(
                     #weight=None,
                     reduction='mean'
@@ -567,10 +555,6 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
             evaluator = EvaluatorTransformer.load(
                 dir=os.path.join(model_dir, 'f1'),
                 batch_size=batch_size,
-                expand_fcn=lambda labels, predictions: (
-                    labels.type(torch.float),
-                    predictions['logits']
-                ),
                 loss_fcn=torch.nn.CrossEntropyLoss(
                     #weight=None,
                     reduction='mean'
