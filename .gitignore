@@ -1,4 +1,7 @@
+.**
+*/.**
+*__pycache__
+*__pycache__/**
 data/*/**
 models/*/**
 results/*/**
-sync-exclude.lst
