@@ -11,18 +11,18 @@ from resources.evaluator import Evaluator, Trainer, T_norm
 from resources.data_io import load_data, load_mappings, T_data
 from resources.multiprocessing import ArgumentQueue
 from resources.tokenization import WordTokenizer
+from resources.embedding import Emdedding, EmdeddingBOW, EmdeddingTfIdf
 
 from sklearn.model_selection import ParameterGrid
 from sklearn.metrics import f1_score
-from sklearn.decomposition import PCA
+from sklearn.base import ClassifierMixin
 
 ####################################################################################################
 # Type hints:                                                                                      #
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Tuple, Iterable, Union, Generator, Dict, Any
-from sklearn.base import ClassifierMixin
+from typing import Iterable, Tuple, Dict, Any
 
 ####################################################################################################
 # Models:                                                                                          #
@@ -42,7 +42,7 @@ MODELS = {
         'probability':[True]
     }),
     "knn": (KNeighborsClassifier, {
-        'n_neighbors':[2,4,6],
+        'n_neighbors':[2,4,8],
         'metric':['l1', 'l2'],
 #        'n_jobs':[-1]
     }),
@@ -80,113 +80,26 @@ def _predict_class(i, m, x):
 # Evaluator Class:                                                                                 #
 ####################################################################################################
 
-class EvaluatorBOW(Evaluator):
-    def __init__(self, normalize_fcn:T_norm=None, num_workers:int=10, _num_tokens:int=0, _num_labels:int=0) -> None:
-        super().__init__(normalize_fcn=normalize_fcn, num_labels=_num_labels)
-        self._num_tokens    = _num_tokens
+class EvaluatorEmdedding(Evaluator):
+    def __init__(self, emdedding:Emdedding=None, model:ClassifierMixin=None, num_labels:int=0, normalize_fcn:T_norm=None, num_workers:int=10) -> None:
+        super().__init__(model=model, num_labels=num_labels, normalize_fcn=normalize_fcn)
+        self._emdedding     = emdedding
         self._num_workers   = num_workers
 
-    def _enumerate_data(self, data:T_data, filter_by_spans:bool=False) -> Generator[Tuple[npt.NDArray, npt.NDArray, float], None, None]:
-        # unpack keys:
-        keys = ('input_ids', 'labels')
-        if isinstance(data, tuple):
-            data, keys = data
-
-        # iterate through batches:
-        self._last_spans = []
-        self._last_texts = []
-        for entry in data:
-            # get new batch to gpu:
-            label, input_ids, weight, spans, text = None, None, 1., None, None
-            for key in keys:
-                if   key == 'labels':    label     = entry[key].detach().numpy()
-                elif key == 'input_ids': input_ids = entry[key].detach().numpy()
-                elif key == 'weights':   weight    = entry[key].detach().numpy()
-                elif key == 'spans':     spans     = entry[key].detach().numpy()
-                elif key == 'texts':     text      = entry[key]
-
-            # deal with texts:
-            if text is not None:
-                self._last_texts.append(text)
-
-            # deal with spans:
-            if spans is not None:
-                self._last_spans.append(spans)
-                    
-                # filter by spans:
-                if filter_by_spans:
-                    input_ids = input_ids[spans]
-            
-            yield input_ids, label, weight
-
     def _encode_data(self, data:T_data, filter_by_spans:bool=False) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
-        n = len(data[0] if isinstance(data, tuple) else data)
-        
-        x = np.zeros((n, self._num_tokens), dtype=float)
-        y = np.empty((n, self._num_labels), dtype=int)
-        w = np.empty(n, dtype=float)
+        # enumerate data:
+        x, y, w = [], [], []
+        for input_ids, label, weight in enumerate(self._enumerate_data(data, filter_by_spans=filter_by_spans)):
+            x.append(input_ids)
+            y.append(label)
+            w.append(weight)
 
-        for i, (input_ids, label, weight) in enumerate(self._enumerate_data(data, filter_by_spans=filter_by_spans)):
-            # create bag-of-words-encoding:
-            for t in input_ids:
-                if t < self._num_tokens:
-                    x[i,t] += 1
+        # encode and return data:
+        return self._emdedding(x), np.array(y, dtype=int), np.array(w, dtype=float)
 
-            # normalize bag-of-words-vector:
-            x[i] = np.nan_to_num(x[i] / np.linalg.norm(x[i]))
-
-            y[i] = label
-            w[i] = weight
-
-        return x, y, w
-
-    @staticmethod
-    def load(dir:str, normalize_fcn:T_norm=None, num_workers:int=10, **kwargs) -> Tuple['EvaluatorBOW', WordTokenizer]:
-        '''Loads a model from disk.
-
-            dir:           Path to the directory that contains the model (e.g.: .\models)
-
-            normalize_fcn: Normalization function used on the predictions [`"max"` | `"sum"` | `"min-max"` | `"softmax"` | `None`]
-
-            num_workers:   Number of threads for parallel processsing [`int`, default:10]
-
-            
-            returns:       Tuple (`EvaluatorTfIdf`, `WordTokenizer`) of the model and the corresponding tokenizer
-        '''
-        # create model instance:
-        bow = EvaluatorBOW(normalize_fcn, num_workers)
-
-        # load data from file:
-        with open(dir + '/bow.pickle', 'rb') as file:
-            data = pickle.load(file)
-
-        # update model parameters:
-        bow._num_tokens = data['num_tokens']
-        bow._num_labels = data['num_labels']
-        bow._model      = data['models']
-
-        return bow, WordTokenizer.load(dir, **kwargs)
-
-    def save(self, dir:str, tokenizer:WordTokenizer) -> None:
-        '''Saves a model to disk.
-
-            dir:           Path to the directory that contains the model (e.g.: .\models)
-
-            tokenizer:     The tokenizer object used on the training data
-        '''
-        # create directories:
-        os.makedirs(dir, exist_ok=True)
-
-        # save model:
-        with open(dir + '/bow.pickle', 'wb') as file:
-            pickle.dump({
-                'num_tokens':  self._num_tokens,
-                'num_labels':  self._num_labels,
-                'models':      self._model
-            }, file)
-
-        # save tokenizer:
-        tokenizer.save(dir)
+    @property
+    def emdedding(self) -> Emdedding:
+        return self._emdedding
 
     def predict(self, data:T_data, output_spans:bool=False) -> Dict[str, Any]:
         x, y_true, _ = self._encode_data(data)
@@ -210,33 +123,63 @@ class EvaluatorBOW(Evaluator):
         if output_spans: result['spans'] = self._last_spans
         return result
 
-    def cosine_similarity(self, a:str, b:str, tokenizer:WordTokenizer) -> float:
-        v = np.zeros((2, self._num_tokens), dtype=float)
+    @staticmethod
+    def load(dir:str, normalize_fcn:T_norm=None, num_workers:int=10, **kwargs) -> 'EvaluatorEmdedding':
+        '''Loads a model from disk.
 
-        for i, text in enumerate([a,b]):
-            # create bag-of-words-encoding:
-            for t in tokenizer(text, return_offsets_mapping=False)['input_ids']:
-                if t < self._num_tokens:
-                    v[i,t] += 1
+            dir:           Path to the directory that contains the model (e.g.: .\models)
 
-            # normalize bag-of-words-vector:
-            v[i] = np.nan_to_num(v[i] / np.linalg.norm(v[i]))
+            normalize_fcn: Normalization function used on the predictions [`"max"` | `"sum"` | `"min-max"` | `"softmax"` | `None`]
 
-        # return dot product:
-        return v.prod(axis=0).sum()
+            num_workers:   Number of threads for parallel processsing [`int`, default:10]
+
+            
+            returns:       `EvaluatorEmdedding` object
+        '''
+        # load data from file:
+        with open(dir + '/model.pickle', 'rb') as file:
+            data = pickle.load(file)
+
+        # create evaluator instance:
+        return  EvaluatorEmdedding(
+            model         = data['models'],
+            emdedding       = data['emdedding_type'].load(dir, **kwargs),
+            num_labels    = data['num_labels'],
+            normalize_fcn = normalize_fcn,
+            num_workers   = num_workers
+        )
+
+    def save(self, dir:str, **kwargs) -> None:
+        '''Saves a model to disk.
+
+            dir:           Path to the directory that contains the model (e.g.: .\models)
+        '''
+        # create directories:
+        os.makedirs(dir, exist_ok=True)
+
+        # save model:
+        with open(dir + '/model.pickle', 'wb') as file:
+            pickle.dump({
+                'models':       self._model,
+                'num_labels':   self._num_labels,
+                'emdedding_type': type(self._emdedding)
+            }, file)
+
+        # save emdedding:
+        self._emdedding.save(dir, **kwargs)
 
 ####################################################################################################
 # Trainer Class:                                                                                   #
 ####################################################################################################
 
-class TrainerBOW(EvaluatorBOW, Trainer):
+class TrainerEmdedding(EvaluatorEmdedding, Trainer):
     def __init__(self,
-            num_tokens:int,
+            embedding:Emdedding,
             num_labels:int,
             normalize_fcn:T_norm=None,
             num_workers:int=10
         ) -> None:
-        super().__init__(normalize_fcn=normalize_fcn, num_workers=num_workers, _num_tokens=num_tokens, _num_labels=num_labels)
+        super().__init__(emdedding=embedding, num_labels=num_labels, normalize_fcn=normalize_fcn, num_workers=num_workers)
 
     def __call__(self,
             model:str,
@@ -295,7 +238,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
     '''Train and/or Evaluate a baseline model.
 
     arguments:
-        model_name:        Name of the model to be trained (e.g.: "svm")
+        model_name:        Name of the model to be trained (e.g.: "bow-svm")
 
         text_column:       Name of the column to be used as the model's input
 
@@ -317,6 +260,8 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
         eval_explanations: Evaluate attentions against spans (default:False)
     '''
+    embedding_name, model_name = tuple(model_name.split('-')) 
+
     try: model = MODELS[model_name.lower()]
     except KeyError: raise ValueError(f'Unknown model "{model_name}"!')
 
@@ -333,8 +278,8 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         print("----------------------------------------------------------------------------------------------------\n")
 
         # define paths:
-        model_path = f"models/bow-{model_name}/bow-{model_name}-{label_column}-{i:d}"
-        result_path = f"results/bow-{model_name}/bow-{model_name}-{label_column}-{i:d}"
+        model_path = f"models/{embedding_name}-{model_name}/{embedding_name}-{model_name}-{label_column}-{i:d}"
+        result_path = f"results/{embedding_name}-{model_name}/{embedding_name}-{model_name}-{label_column}-{i:d}"
 
         # load data:
         data_train, data_valid, data_test = load_data(
@@ -345,17 +290,23 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
             tokenizer
         )
 
-        for _ in data_train[0]: pass
-        tokenizer.train = False
-
         if not (predict or eval_explanations):
+            # create embedding:
+            if embedding_name == "bow":     embedding = EmdeddingBOW(tokenizer)
+            elif embedding_name == "tfidf": embedding = EmdeddingTfIdf(data_train, tokenizer)
+
+            else: raise ValueError(f'Unknown embedding "{embedding_name}"!')
+
             # create trainer:
-            trainer = TrainerBOW(
-                tokenizer.vocab_size,
+            trainer = TrainerEmdedding(
+                embedding,
                 len(label_map),
                 normalize_fcn=normalize_fcn,
                 num_workers=threads
             )
+
+            # compress encoding:
+            if pca: trainer.emdedding.fit_pca(data_train, 0.5)
 
             # train model:
             trainer(
@@ -374,7 +325,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
         else:
             # load model:
-            trainer, tokenizer = EvaluatorBOW.load(
+            trainer, tokenizer = EvaluatorEmdedding.load(
                 dir=model_path,
                 normalize_fcn=normalize_fcn,
                 num_workers=threads

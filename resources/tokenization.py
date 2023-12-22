@@ -1,5 +1,4 @@
 import os
-import pickle
 import numpy as np
 
 from nltk.tokenize import TreebankWordTokenizer
@@ -80,8 +79,8 @@ class WordTokenizer:
         tokenizer = WordTokenizer(**kwargs)
 
         # load vocab from file:
-        with open(dir + '/vocab.pickle', 'rb') as file:
-            tokenizer._vocab = pickle.load(file)
+        with open(dir + '/vocab.pickle', 'r') as file:
+            tokenizer._vocab = file.read().split('\n')
             tokenizer._train = False
 
         return tokenizer
@@ -91,5 +90,5 @@ class WordTokenizer:
         os.makedirs(dir, exist_ok=True)
 
         # save vocabulary:
-        with open(dir + '/vocab.pickle', 'wb') as file:
-            pickle.dump(self._vocab, file)
+        with open(dir + '/vocab.pickle', 'w') as file:
+            file.write('\n'.join(self._vocab))

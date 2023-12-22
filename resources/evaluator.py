@@ -2,12 +2,14 @@ import abc
 import numpy as np
 import torch.nn as nn
 
+from sklearn.base import ClassifierMixin
+
 ####################################################################################################
 # Type hints:                                                                                      #
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Callable, Iterable, Union, Literal, Dict, Any
+from typing import Callable, Iterable, Tuple, Union, Literal, Generator, Dict, Any
 from resources.data_io import T_data
 
 T_norm = Union[
@@ -50,8 +52,8 @@ def getNormFcn(normalize_fcn:T_norm) -> Callable[[npt.NDArray], npt.NDArray]:
 ####################################################################################################
 
 class Evaluator(metaclass=abc.ABCMeta):
-    def __init__(self, normalize_fcn:T_norm=None, num_labels:int=0) -> None:
-        self._model         = None
+    def __init__(self, model:ClassifierMixin=None, num_labels:int=0, normalize_fcn:T_norm=None) -> None:
+        self._model         = model
         self._num_labels    = num_labels
         self._normalize_fcn = getNormFcn(normalize_fcn)
 
@@ -73,6 +75,39 @@ class Evaluator(metaclass=abc.ABCMeta):
     def num_labels(self) -> int:
         '''`int`: the number of unique labels predicted by the model.'''
         self._num_labels
+
+    def _enumerate_data(self, data:T_data, filter_by_spans:bool=False) -> Generator[Tuple[npt.NDArray, npt.NDArray, float], None, None]:
+        # unpack keys:
+        keys = ('input_ids', 'labels')
+        if isinstance(data, tuple):
+            data, keys = data
+
+        # iterate through batches:
+        self._last_spans = []
+        self._last_texts = []
+        for entry in data:
+            # get new batch to gpu:
+            label, input_ids, weight, spans, text = None, None, 1., None, None
+            for key in keys:
+                if   key == 'labels':    label     = entry[key].detach().numpy()
+                elif key == 'input_ids': input_ids = entry[key].detach().numpy()
+                elif key == 'weights':   weight    = entry[key].detach().numpy()
+                elif key == 'spans':     spans     = entry[key].detach().numpy()
+                elif key == 'texts':     text      = entry[key]
+
+            # deal with texts:
+            if text is not None:
+                self._last_texts.append(text)
+
+            # deal with spans:
+            if spans is not None:
+                self._last_spans.append(spans)
+                    
+                # filter by spans:
+                if filter_by_spans:
+                    input_ids = input_ids[spans]
+            
+            yield input_ids, label, weight
 
     @abc.abstractstaticmethod
     def load(dir:str, normalize_fcn:T_norm=None, **kwargs) -> 'Evaluator':
