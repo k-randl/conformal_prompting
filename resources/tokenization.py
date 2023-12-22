@@ -79,7 +79,7 @@ class WordTokenizer:
         tokenizer = WordTokenizer(**kwargs)
 
         # load vocab from file:
-        with open(dir + '/vocab.pickle', 'r') as file:
+        with open(dir + '/vocab.pickle', 'r', encoding='utf-8') as file:
             tokenizer._vocab = file.read().split('\n')
             tokenizer._train = False
 
@@ -90,5 +90,5 @@ class WordTokenizer:
         os.makedirs(dir, exist_ok=True)
 
         # save vocabulary:
-        with open(dir + '/vocab.pickle', 'w') as file:
+        with open(dir + '/vocab.pickle', 'w', encoding='utf-8') as file:
             file.write('\n'.join(self._vocab))

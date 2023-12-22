@@ -505,7 +505,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
         # define paths:
         model_dir = f"models/{model_name}/{model_name}-{label_column}-{i:d}"
-        result_path = f"results/{model_name}/{model_name}-{label_column}-{i:d}"
+        result_dir = f"results/{model_name}"
 
         # load data:
         data_train, data_valid, data_test = load_data(
@@ -547,6 +547,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 #            trainer.save_model(path=model_dir)
 
             # save history:
+            os.makedirs(model_dir + '/hist.json', exist_ok=True)
             with open(model_dir + '/hist.json', 'w') as file:
                 file.write(str(trainer.train_history))
 
@@ -574,7 +575,8 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
             )
 
             # save predictions:
-            with open(f"{result_path}.pickle", "wb") as f:
+            os.makedirs(result_dir, exist_ok=True)
+            with open(f'{result_dir}/{model_name}-{label_column}-{i:d}.pickle', 'wb') as f:
                 pickle.dump(results, f)
 
         if eval_explanations:

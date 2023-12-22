@@ -235,8 +235,7 @@ class EmbeddingTfIdf(Embedding):
         # create tf-idf-vector:
         for t in input_ids:
             if t < self.num_tokens:
-                #encoded_ids[t] += self._idf[t] / len(input_ids)
-                encoded_ids[t] += self._idf[t]
+                encoded_ids[t] += self._idf[t] / len(input_ids)
 
         # normalize tf-idf-vector:
         encoded_ids = np.nan_to_num(encoded_ids / np.linalg.norm(encoded_ids))
