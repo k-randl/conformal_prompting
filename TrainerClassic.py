@@ -171,7 +171,7 @@ class EvaluatorClassic(Evaluator):
 
         # create evaluator instance:
         return EvaluatorClassic(
-            model         = data['models'],
+            model         = data['model'],
             embedding     = data['embedding_type'].load(dir, **kwargs),
             num_labels    = data['num_labels'],
             normalize_fcn = normalize_fcn,
@@ -189,7 +189,7 @@ class EvaluatorClassic(Evaluator):
         # save model:
         with open(dir + '/model.pickle', 'wb') as file:
             pickle.dump({
-                'models':         self._model,
+                'model':         self._model,
                 'num_labels':     self._num_labels,
                 'embedding_type': type(self._embedding)
             }, file)
@@ -218,7 +218,7 @@ class TrainerClassic(EvaluatorClassic, Trainer):
             modelargs:Dict[str, Iterable[Any]]={}
         ) -> None:
         best_score = -1.
-        best_models = None
+        best_model = None
 
         # unpack data:
         x, y, w = self._encode_data(data_train)
@@ -246,10 +246,10 @@ class TrainerClassic(EvaluatorClassic, Trainer):
             if score > best_score:
                 print(f'New best score: {score:.2f} (args={str(kwargs)}')
                 best_score  = score
-                best_models = self._model
+                best_model = self._model
 
         # switch to model with best parameters:
-        self._model = best_models
+        self._model = best_model
 
 ####################################################################################################
 # Main-Function:                                                                                   #
