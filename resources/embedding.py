@@ -5,6 +5,7 @@ import numpy as np
 
 from tqdm.autonotebook import tqdm
 from sklearn.decomposition import PCA
+from sklearn.metrics import pairwise_distances, silhouette_score
 from resources.tokenization import WordTokenizer
 from resources.multiprocessing import ArgumentQueue
 
@@ -13,8 +14,15 @@ from resources.multiprocessing import ArgumentQueue
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Callable, Iterable, Tuple, Union, Optional, Literal, Generator, Dict, Any
+from typing import Iterable, Tuple, Union, Optional, Literal
 from resources.data_io import T_data
+
+####################################################################################################
+# Plotting:                                                                                        #
+####################################################################################################
+
+try: import matplotlib.pyplot as plt
+except ModuleNotFoundError: plt=None
 
 ####################################################################################################
 # Thread Functions:                                                                                #
@@ -97,10 +105,32 @@ class Embedding(metaclass=abc.ABCMeta):
         reduced_data = self._pca.fit_transform(encoded_data)
         if verbose: print(f'Done. Reduced dimensionality from {encoded_data.shape} to {reduced_data.shape}.')
 
-    def cosine_similarity(self, a:Union[str, Iterable[int]], b:Union[str, Iterable[int]]) -> float:
-        # return dot product:
-        return self([a,b], compress=False).prod(axis=0).sum()
+    def cosine_similarity(self, data:Union[Iterable[str], Iterable[Iterable[int]]]) -> npt.NDArray:
+        return 1. - pairwise_distances(self(data, compress=False), metric='cosine')
     
+    def silhouette_score(self, x:Union[Iterable[str], Iterable[Iterable[int]]], y:Union[Iterable[str], Iterable[int]]):
+        return silhouette_score(self(x, compress=False), y, metric='cosine')
+    
+    def scatter(self, x:Union[Iterable[str], Iterable[Iterable[int]]], y:Union[Iterable[str], Iterable[int]], **kwargs) -> npt.NDArray:
+        # compute pairwise distances:
+        distance = pairwise_distances(self(x, compress=False), metric='cosine')
+        
+        if plt is None: print("!!!WARNING!!! Module 'matplotlib' could not be found")
+        else:
+            # convert labels to integer if necessary:
+            if not isinstance(y[0], int):
+                y2i = {label:i for i,label in enumerate(np.unique(y))}
+                y = np.apply_along_axis(lambda label: y2i[label[0]], -1, np.reshape(y, y.shape + (1,)))
+
+            # compress to 2d using pca:
+            pca = PCA(2)
+            distance_2d = pca.fit_transform(distance)
+            
+            # plot data:
+            plt.scatter(distance_2d[:,0], distance_2d[:,1], c=y, **kwargs)
+
+        return distance
+
     @abc.abstractstaticmethod
     def load(dir:str, **kwargs) -> 'Embedding':
         '''Loads an `Embedding` object from disk.
@@ -144,7 +174,9 @@ class EmbeddingBOW(Embedding):
                 encoded_ids[t] += 1
 
         # normalize bag-of-words-vector:
+        np.seterr(divide='ignore', invalid='ignore')
         encoded_ids = np.nan_to_num(encoded_ids / np.linalg.norm(encoded_ids))
+        np.seterr(divide='warn', invalid='warn')
 
         return encoded_ids
 
@@ -238,7 +270,9 @@ class EmbeddingTfIdf(Embedding):
                 encoded_ids[t] += self._idf[t] / len(input_ids)
 
         # normalize tf-idf-vector:
+        np.seterr(divide='ignore', invalid='ignore')
         encoded_ids = np.nan_to_num(encoded_ids / np.linalg.norm(encoded_ids))
+        np.seterr(divide='warn', invalid='warn')
 
         return encoded_ids
 

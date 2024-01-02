@@ -18,6 +18,7 @@ T_norm = Union[
     Literal["sum"],
     Literal["min-max"],
     Literal["softmax"],
+    Literal["argmax"],
     None
 ]
 
@@ -26,6 +27,7 @@ T_norm = Union[
 ####################################################################################################
 
 def _norm_identity(x:npt.NDArray) -> npt.NDArray:   return x
+def _norm_argmax(x:npt.NDArray) -> npt.NDArray:     return np.array([np.argmax(x)])
 def _norm_max(x:npt.NDArray) -> npt.NDArray:        return x / max(x.max(), 1e-6)
 def _norm_sum(x:npt.NDArray) -> npt.NDArray:        return x / max(x.sum(), 1e-6)
 def _norm_min_max(x:npt.NDArray) -> npt.NDArray:    return _norm_max(x - x.min())
@@ -39,7 +41,8 @@ def getNormFcn(normalize_fcn:T_norm) -> Callable[[npt.NDArray], npt.NDArray]:
     '''Returns a normalization function.'''
     if normalize_fcn is None:               return _norm_identity
     elif isinstance(normalize_fcn, str):
-        if   normalize_fcn == "softmax":    return _norm_softmax
+        if   normalize_fcn == "argmax":     return _norm_argmax
+        elif normalize_fcn == "softmax":    return _norm_softmax
         elif normalize_fcn == "min-max":    return _norm_min_max
         elif normalize_fcn == "max":        return _norm_max
         elif normalize_fcn == "sum":        return _norm_sum

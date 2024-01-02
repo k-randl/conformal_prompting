@@ -47,28 +47,34 @@ class SupportModel(NaiveModel):
         return np.full((len(X), self._n), self._p, dtype=float)
     
     def fit(self, X:Iterable, y:Iterable, w:Optional[Iterable]=None) -> None:
-        self._p = np.mean([c == y for c in self.classes_], axis=1)
+        m = np.array([y == c for c in self.classes_], dtype=float)
+
+        if w is not None:
+            if len(w) == self._n:   m = np.apply_along_axis(lambda col: col*w, 0, m)
+            elif len(w) == len(y):  m = np.apply_along_axis(lambda row: row*w, 1, m)
+            else: raise ValueError(f'w must either have one entry per class label ({self._n:d}) or per sample ({len(y):d}), but has length {len(w):d}.')
+
+        self._p = np.mean(m, axis=1)
 
 class RandomModel(NaiveModel):
     def __init__(self, num_classes:int=2) -> None:
         super().__init__(num_classes)
 
     def predict(self, X:Iterable) -> npt.NDArray:
-        return np.random.random(len(X))
+        return np.random.randint(self._n, size=len(X))
     
     def predict_proba(self, X:Iterable) -> npt.NDArray:
         return np.random.random((len(X), self._n))
 
 class DummyModel(NaiveModel):
-    def __init__(self, output:int) -> None:
-        super().__init__(2)
+    def __init__(self, output:int, num_classes:int=2) -> None:
+        super().__init__(num_classes)
         self._output = output
 
     def predict(self, X:Iterable) -> npt.NDArray:
         return np.ones(len(X), dtype=int) * self._output
     
     def predict_proba(self, X:Iterable) -> npt.NDArray:
-        p = np.empty((len(X), 2), dtype=float)
-        p[:,0] = 1-self._output
-        p[:,1] = self._output
+        p = np.zeros((len(X), self._n), dtype=float)
+        p[:, self._output] = 1.
         return p
