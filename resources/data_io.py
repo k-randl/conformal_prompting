@@ -41,7 +41,7 @@ class ClassificationDataset(Dataset):
         self.data_size = 0
 
         # extract labels and texts:
-        for text, label, spans in zip(data[text_column].values, data[label_column].values, data[label_column.split('_')[0] + '_spans'].values):
+        for text, label, spans in zip(data[text_column].values, data[label_column].values, data[label_column.split('-')[0] + '-' + text_column].values):
             separators = [0, len(text)]
 
             if not truncate:
@@ -125,7 +125,7 @@ def load_data(
         **kwargs
     ):
     # load data:
-    with open(dir + f"split_{split:d}.pickle", "rb") as f:
+    with open(dir + f"split_{label_column.split('-')[0]}_{split:d}.pickle", "rb") as f:
         data = pickle.load(f)
 
     # convert to dataset class:
@@ -147,9 +147,9 @@ def load_data(
         (data_test, keys_valid)
     )
 
-def save_data(dir:str, split:int, data_train:pd.DataFrame, data_valid:pd.DataFrame, data_test:pd.DataFrame):
+def save_data(dir:str, split:int, task:str, data_train:pd.DataFrame, data_valid:pd.DataFrame, data_test:pd.DataFrame):
     # save data:
-    with open(dir + f"split_{split:d}.pickle", "wb") as f:
+    with open(dir + f"split_{task}_{split:d}.pickle", "wb") as f:
         pickle.dump({'train':data_train,
                      'valid':data_valid,
                      'test':data_test}, f)
@@ -162,10 +162,10 @@ def load_mappings(dir:str, label:str):
     # extract mappings for label:
     return mappings[label]
 
-def save_mappings(dir:str, products:Iterable[str],hazards:Iterable[str],productCategories:Iterable[str],hazardCategories:Iterable[str]):
+def save_mappings(dir:str, products:Iterable[str], hazards:Iterable[str], productCategories:Iterable[str], hazardCategories:Iterable[str]):
     # save mappings:
     with open(dir + "mappings.pickle", "wb") as f:
         pickle.dump({'product':products,
-                    'hazard':hazards,
-                    'product_category':productCategories,
-                    'hazard_category':hazardCategories}, f)
+                     'hazard':hazards,
+                     'product-category':productCategories,
+                     'hazard-category':hazardCategories}, f)

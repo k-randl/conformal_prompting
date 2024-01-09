@@ -310,7 +310,7 @@ class EvaluatorConformalSimple(EvaluatorConformal):
 
 class Trainer(Evaluator, metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def __call__(self,
+    def fit(self,
             model:str,
             data_train:T_data,
             data_valid:T_data,

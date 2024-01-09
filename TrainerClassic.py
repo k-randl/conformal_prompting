@@ -1,15 +1,13 @@
 # imports:
 import os
 import sys
+import json
 import pickle
 
 import numpy as np
 
-from tqdm.autonotebook import tqdm
-
-from resources.evaluator import Evaluator, Trainer, T_norm
+from resources.evaluator import Trainer, T_norm
 from resources.data_io import load_data, load_mappings, T_data
-from resources.multiprocessing import ArgumentQueue
 from resources.tokenization import WordTokenizer
 from resources.embedding import Embedding, EmbeddingBOW, EmbeddingTfIdf
 
@@ -22,7 +20,7 @@ from sklearn.base import ClassifierMixin
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Iterable, Tuple, Dict, Any
+from typing import Iterable, Tuple, Type, Dict, Any
 
 ####################################################################################################
 # Models:                                                                                          #
@@ -39,52 +37,31 @@ MODELS = {
     "svm": (SVC, {
         'C':[0.5,1.0,2.0],
         'kernel':['linear'],
-        'probability':[True]
+        'probability':[True],
+        'verbose':[True]
     }),
     "knn": (KNeighborsClassifier, {
         'n_neighbors':[2,4,8],
         'metric':['l1', 'l2'],
-#        'n_jobs':[-1]
+        'n_jobs':[-1]
     }),
     "lr": (LogisticRegression, {
         'C':[0.5,1.0,2.0],
         'penalty':['l1', 'l2'],
         'solver':['liblinear'],
-#        'verbose':[1],
-#        'n_jobs':[-1]
+        'n_jobs':[-1],
+        'verbose':[True]
     })
 }
 
 ####################################################################################################
-# Thread Functions:                                                                                #
+# Trainer Class:                                                                                   #
 ####################################################################################################
 
-def _train_model(i, data, model, modelargs):
-    x, y, w = data
-
-    labels = np.unique(y[:,i])
-                
-    if len(labels) > 1:
-        m = model(**modelargs)
-        try: m.fit(x, y[:,i], w)
-        except: m.fit(x, y[:,i])
-
-        return i, m
-
-    else: return i, DummyModel(labels[0])
-
-def _predict_class(i, m, x):
-    return i, m.predict_proba(x)[:,m.classes_[1]]
-
-####################################################################################################
-# Evaluator Class:                                                                                 #
-####################################################################################################
-
-class EvaluatorClassic(Evaluator):
-    def __init__(self, embedding:Embedding=None, model:ClassifierMixin=None, num_labels:int=0, normalize_fcn:T_norm=None, num_workers:int=10) -> None:
-        super().__init__(model=model, num_labels=num_labels, normalize_fcn=normalize_fcn)
-        self._embedding     = embedding
-        self._num_workers   = num_workers
+class TrainerClassic(Trainer):
+    def __init__(self, num_labels:int=0, normalize_fcn:T_norm=None) -> None:
+        super().__init__(num_labels=num_labels, normalize_fcn=normalize_fcn)
+        self._embedding = None
 
     def _encode_data(self, data:T_data, filter_by_spans:bool=False) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
         x, y, w = [], [], []
@@ -130,30 +107,33 @@ class EvaluatorClassic(Evaluator):
     def embedding(self) -> Embedding:
         return self._embedding
 
-    def predict(self, data:T_data, output_spans:bool=False) -> Dict[str, Any]:
-        x, y_true, _ = self._encode_data(data)
-        
-        y_pred = np.zeros((len(x), self._num_labels), dtype=float)
-#        queue = ArgumentQueue(
-#            _predict_class,
-#            list(enumerate(self._model)),
-#            desc="Evaluation"
-#        )
-#        for i, y in queue(n_workers=self._num_workers, x=x): y_pred[:,i] = y
-        for i, m in tqdm(enumerate(self._model), total=self._num_labels, desc="Evaluation"):
-            y_pred[:,i] = m.predict_proba(x)[:,m.classes_[1]]
+    def predict(self, data:T_data, output_probabilities:bool=True, output_spans:bool=False) -> Dict[str, Any]:
+        result = {}
 
-        # create and return output dictionary:
-        result = {
-            'labels':np.array(y_true),
-            'predictions':np.apply_along_axis(self._normalize_fcn, 1, y_pred)
-        }
+        # get data:
+        x, result['labels'], _ = self._encode_data(data)
+
+        if output_probabilities:
+            # create probability array:
+            p = np.zeros((len(x), self._num_labels), dtype=float)
+
+            # predict probabilities:
+            p[:,self._model.classes_] = self._model.predict_proba(x)
+
+            # save most probable class as prediction:
+            result['predictions']   = np.argmax(p, axis=-1)
+            result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, p)
+
+        # otherwise directly predict labels:
+        else: result['predictions'] = self._model.predict(x)
+
         # add spans to list:
         if output_spans: result['spans'] = self._last_spans
+
         return result
 
     @staticmethod
-    def load(dir:str, normalize_fcn:T_norm=None, num_workers:int=10, **kwargs) -> 'EvaluatorClassic':
+    def load(dir:str, normalize_fcn:T_norm=None, num_workers:int=10, **kwargs) -> 'TrainerClassic':
         '''Loads a model from disk.
 
             dir:           Path to the directory that contains the model (e.g.: .\models)
@@ -163,20 +143,19 @@ class EvaluatorClassic(Evaluator):
             num_workers:   Number of threads for parallel processsing [`int`, default:10]
 
             
-            returns:       `EvaluatorClassic` object
+            returns:       `TrainerClassic` object
         '''
         # load data from file:
         with open(dir + '/model.pickle', 'rb') as file:
             data = pickle.load(file)
 
         # create evaluator instance:
-        return EvaluatorClassic(
-            model         = data['model'],
-            embedding     = data['embedding_type'].load(dir, **kwargs),
+        trainer =  TrainerClassic(
             num_labels    = data['num_labels'],
-            normalize_fcn = normalize_fcn,
-            num_workers   = num_workers
+            normalize_fcn = normalize_fcn
         )
+        trainer._model     = data['model']
+        trainer._embedding = data['embedding_type'].load(dir, **kwargs)
 
     def save(self, dir:str, **kwargs) -> None:
         '''Saves a model to disk.
@@ -189,7 +168,7 @@ class EvaluatorClassic(Evaluator):
         # save model:
         with open(dir + '/model.pickle', 'wb') as file:
             pickle.dump({
-                'model':         self._model,
+                'model':          self._model,
                 'num_labels':     self._num_labels,
                 'embedding_type': type(self._embedding)
             }, file)
@@ -197,28 +176,12 @@ class EvaluatorClassic(Evaluator):
         # save embedding:
         self._embedding.save(dir, **kwargs)
 
-####################################################################################################
-# Trainer Class:                                                                                   #
-####################################################################################################
-
-class TrainerClassic(EvaluatorClassic, Trainer):
-    def __init__(self,
-            embedding:Embedding,
-            num_labels:int,
-            normalize_fcn:T_norm=None,
-            num_workers:int=10
-        ) -> None:
-        super().__init__(embedding=embedding, num_labels=num_labels, normalize_fcn=normalize_fcn, num_workers=num_workers)
-
-    def __call__(self,
-            model:str,
-            data_train:T_data,
-            data_valid:T_data,
-            bias:float=0.5,
-            modelargs:Dict[str, Iterable[Any]]={}
-        ) -> None:
+    def fit(self, embedding:Embedding, model:Type[ClassifierMixin], data_train:T_data, data_valid:T_data, modelargs:Dict[str, Iterable[Any]]={}) -> None:
         best_score = -1.
         best_model = None
+
+        # create embedding:
+        self._embedding = embedding
 
         # unpack data:
         x, y, w = self._encode_data(data_train)
@@ -226,16 +189,16 @@ class TrainerClassic(EvaluatorClassic, Trainer):
         self._train_history = []
         for kwargs in ParameterGrid(modelargs):
             # fit model with new parameters:
-            self._model = [None]*self._num_labels
-            queue = ArgumentQueue(_train_model, list(zip(range(self._num_labels))), desc=f'Training classifier ({str(kwargs)})')
-            for i, m in queue(n_workers=self._num_workers, data=(x, y, w), model=model, modelargs=kwargs): self._model[i] = m
+            self._model = model(**kwargs)
+            try: self._model.fit(x, y, w)
+            except: self._model.fit(x, y)
 
             # predict model:
-            valid_out = self.predict(data_valid)
+            valid_out = self.predict(data_valid, output_probabilities=False)
 
             # calculate score:
-            y_true = (valid_out['labels']).astype(int)
-            y_pred = (valid_out['predictions'] > bias).astype(int)
+            y_true = valid_out['labels'].astype(int)
+            y_pred = valid_out['predictions'].astype(int)
             score  = f1_score(y_true, y_pred, average='macro')
 
             #save score to history:
@@ -257,8 +220,7 @@ class TrainerClassic(EvaluatorClassic, Trainer):
 
 def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         iterations:        Iterable[int]   = range(5),
-        normalize_fcn:     T_norm          = 'min-max',
-        threads:           int             = 10,
+        normalize_fcn:     T_norm          = None,
         pca:               bool            = False,
         train:             bool            = False,
         predict:           bool            = False,
@@ -277,9 +239,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
         iterations:        K-Fold iterations (default:[0,1,2,3,4,5])
 
-        normalize_fcn:     Normalization applied on the results after prediction (default:'min-max')
-
-        threads:           Number of threads for parallel processsing (default:10)
+        normalize_fcn:     Normalization applied on the results after prediction (default:None)
 
         pca:               Use Principal Component Analysis for reducing the embeding dimensions (default:False)
 
@@ -335,19 +295,18 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
             else: raise ValueError(f'Unknown embedding "{embedding_name}"!')
 
+            # compress encoding:
+            if pca: embedding.fit_pca(data_train, 0.5)
+
             # create trainer:
             trainer = TrainerClassic(
-                embedding,
                 len(label_map),
-                normalize_fcn=normalize_fcn,
-                num_workers=threads
+                normalize_fcn=normalize_fcn
             )
 
-            # compress encoding:
-            if pca: trainer.embedding.fit_pca(data_train, 0.5)
-
             # train model:
-            trainer(
+            trainer.fit(
+                embedding,
                 model[0],
                 data_train,
                 data_valid,
@@ -358,15 +317,14 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
             trainer.save(dir=model_dir, tokenizer=tokenizer)
 
             # save history:
-            with open(model_dir + '/hist.json', 'w') as file:
-                file.write(str(trainer.train_history))
+            with open(model_dir + '/hist.json', 'w') as f:
+                json.dump(trainer.train_history, f)
 
         else:
             # load model:
-            trainer = EvaluatorClassic.load(
+            trainer = TrainerClassic.load(
                 dir=model_dir,
-                normalize_fcn=normalize_fcn,
-                num_workers=threads
+                normalize_fcn=normalize_fcn
             )
 
         if not (train or eval_explanations):
@@ -419,14 +377,8 @@ if __name__ == '__main__':
     parser.add_argument('--normalize_fcn',
         metavar='-nf',
         type=str,
-        default='min-max',
-        help='Normalization applied on the results after prediction (default:\'min-max\')'
-    )
-    parser.add_argument('--threads',
-        metavar='-t',
-        type=int,
-        default=10,
-        help='Number of threads for parallel processsing'
+        default=None,
+        help='Normalization applied on the results after prediction (default: no normalization)'
     )
     parser.add_argument('--pca',
         action='store_true',
