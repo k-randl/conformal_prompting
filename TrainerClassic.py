@@ -353,48 +353,48 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Train and/or Evaluate a baseline model.')
     parser.add_argument('model_name',
         type=str,
-        help='Name of the model to be trained (e.g.: "bow-svm")'
+        help='name of the model to be trained (e.g.: "bow-svm")'
     )
     parser.add_argument('text_column',
         type=str,
-        help='Name of the column to be used as the model\'s input',
+        help='name of the column to be used as the model\'s input',
     )
     parser.add_argument('label_column',
         type=str,
-        help='Name of the column to be used as the label',
+        help='name of the column to be used as the label',
     )
     parser.add_argument('dataset_name',
         type=str,
-        help='Name of the dataset (e.g.: "incidents")'
+        help='name of the dataset (e.g.: "incidents")'
     )
-    parser.add_argument('--iterations',
-        metavar='-i',
+    parser.add_argument('-i', '--iterations',
+        metavar='I',
         nargs='+',
         type=int,
         default=list(range(5)),
-        help='K-Fold iterations'
+        help='k-fold iterations'
     )
-    parser.add_argument('--normalize_fcn',
-        metavar='-nf',
+    parser.add_argument('-nf', '--normalize_fcn',
+        metavar='NF',
         type=str,
         default=None,
-        help='Normalization applied on the results after prediction (default: no normalization)'
+        help='normalization applied on the results after prediction (default: no normalization)'
     )
     parser.add_argument('--pca',
         action='store_true',
-        help = 'Use Principal Component Analysis for reducing the embeding dimensions'
+        help = 'use principal component analysis for reducing the embeding dimensions'
     )
     parser.add_argument('--train',
         action='store_true',
-        help='Only train model'
+        help='only train model'
     )
     parser.add_argument('--predict',
         action='store_true',
-        help='Only predict test set'
+        help='only predict test set'
     )
     parser.add_argument('--eval_explanations',
         action='store_true',
-        help='Evaluate attentions against spans'
+        help='evaluate attentions against spans'
     )
 
     # parse arguments:

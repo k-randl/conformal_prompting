@@ -1,6 +1,7 @@
 # imports:
 import os
 import sys
+import json
 import pickle
 import shutil
 
@@ -16,7 +17,7 @@ import numpy as np
 from tqdm import trange
 from tqdm.autonotebook import tqdm
 
-from resources.evaluator import Evaluator, Trainer, T_norm
+from resources.evaluator import Trainer, T_norm
 from resources.data_io import load_data, load_mappings, T_data
 from sklearn.model_selection import ParameterGrid
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score
@@ -33,15 +34,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Optional, Callable, Tuple, Iterable, Union, Generator, Dict, Any
+from typing import Optional, Tuple, Iterable, Union, Generator, Dict, Any
 
 ####################################################################################################
-# Evaluator Class:                                                                                 #
+# Trainer Class:                                                                                   #
 ####################################################################################################
 
-class EvaluatorTransformer(Evaluator):
-    def __init__(self, batch_size:int=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, _num_labels=0) -> None:
-        super().__init__(normalize_fcn=normalize_fcn, num_labels=_num_labels)
+class TrainerTransformer(Trainer):
+    def __init__(self, num_labels:int, batch_size:int, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None) -> None:
+        super().__init__(normalize_fcn=normalize_fcn, num_labels=num_labels)
         self._batch_size = batch_size
         self._loss_fcn   = loss_fcn
 
@@ -104,7 +105,7 @@ class EvaluatorTransformer(Evaluator):
         else: return None
 
     @staticmethod
-    def load(dir:str, num_labels:int, batch_size:int=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, **kwargs) -> 'EvaluatorTransformer':
+    def load(dir:str, num_labels:int, batch_size:int=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, **kwargs) -> 'TrainerTransformer':
         '''Loads a model from disk.
 
             dir:            Path to the directory that contains the model (e.g.: .\models)
@@ -116,9 +117,9 @@ class EvaluatorTransformer(Evaluator):
             normalize_fcn:  Normalization function used on the predictions [`"max"` | `"sum"` | `"min-max"` | `"softmax"` | `None`]
 
 
-            returns:        An instance of `EvaluatorTransformerTfIdf` with the model.
+            returns:        An instance of `TrainerTransformerTfIdf` with the model.
         '''
-        evaluator = EvaluatorTransformer(
+        evaluator = TrainerTransformer(
             batch_size=batch_size,
             normalize_fcn=normalize_fcn,
             loss_fcn=loss_fcn,
@@ -151,13 +152,13 @@ class EvaluatorTransformer(Evaluator):
         else:
             torch.save(state_dict, f'{dir}/{type(model).__name__}.pt')
 
-    def predict(self, data:T_data, output_spans:bool=False, output_attentions:bool=False, output_hidden_states:bool=False) -> Dict[str, any]:
+    def predict(self, data:T_data, output_probabilities:bool=True, output_spans:bool=False, output_attentions:bool=False, output_hidden_states:bool=False) -> Dict[str, any]:
         assert not (self._model is None)
         self._model.eval()
 
         eval_loss = 0
         n_steps = 0
-        predictions, labels = [], []
+        logits, labels = [], []
         spans, attentions, hidden_states = [], [], []
 
         for labels_tensor, weights_tensor, spans_tensor, kwargs in self._enumerate_data(data, desc="Evaluation"):
@@ -168,7 +169,6 @@ class EvaluatorTransformer(Evaluator):
             with torch.no_grad():
                 # feed input through model:
                 model_out = self._model(**kwargs)
-                predictions_tensor = model_out['logits']
 
                 if spans_tensor is not None:
                     self._last_spans = [t.detach().to('cpu').numpy() for t in spans_tensor]
@@ -185,12 +185,15 @@ class EvaluatorTransformer(Evaluator):
                         if output_hidden_states: hidden_states.extend(self._last_hidden_states)
 
                 # add predictions and labels to lists:
-                predictions.extend(list(predictions_tensor.to('cpu').numpy()))
+                logits.extend(list(model_out.logits.to('cpu').numpy()))
                 labels.extend(list(labels_tensor.to('cpu').numpy()))
 
                 # update variables for mean loss calculation:
                 if not (self._loss_fcn is None):
-                    loss = self._loss_fcn(predictions_tensor.type(torch.float), labels_tensor.type(torch.float))
+                    loss = self._loss_fcn(
+                        model_out.logits.type(torch.float),
+                        nn.functional.one_hot(labels_tensor, num_classes=self._num_labels).type(torch.float)
+                    )
                     eval_loss += loss.item()
                     n_steps += 1
 
@@ -202,46 +205,19 @@ class EvaluatorTransformer(Evaluator):
         # create and return output dictionary:
         result = {
             'labels':np.array(labels),
-            'predictions':np.apply_along_axis(self._normalize_fcn, 1, predictions)
+            'predictions':np.argmax(logits, axis=-1)
         }
+        if output_probabilities:    result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, logits)
         if output_spans:            result['spans'] = spans
         if output_attentions:       result['attentions'] = attentions
         if output_hidden_states:    result['hidden_states'] = hidden_states
         if n_steps > 0:             result['loss'] = eval_loss/n_steps
         return result
 
+    def fit(self, model:str, data_train:T_data, data_valid:T_data, max_grad_norm:float=1., model_dir:str='./model/', modelargs: Dict[str, Iterable[Any]]={}) -> None:
+        model_dir = os.path.abspath(model_dir)
+        tmp_dir   = os.path.join(model_dir, '.tmp')
 
-####################################################################################################
-# Trainer Class:                                                                                   #
-####################################################################################################
-
-class TrainerTransformer(EvaluatorTransformer, Trainer):
-    def __init__(self,
-            num_labels:int,
-            batch_size:int,
-            normalize_fcn:T_norm=None,
-            model_dir:str='./model/',
-            max_grad_norm:float=1.,
-            loss_fcn:Optional[nn.Module]=None
-
-        ) -> None:
-        super().__init__(
-            batch_size=batch_size,
-            normalize_fcn=normalize_fcn,
-            loss_fcn=loss_fcn,
-            _num_labels=num_labels
-        )
-        self._model_dir = os.path.abspath(model_dir)
-        self._tmp_dir=os.path.join(self._model_dir, '.tmp')
-        self._max_grad_norm = max_grad_norm
-
-    def __call__(self,
-            model:str,
-            data_train:T_data,
-            data_valid:T_data,
-            bias:float=0.5,
-            modelargs: Dict[str, Iterable[Any]]={}
-        ) -> None:
         best_f1   = float('-inf')
         best_loss = float('inf')
 
@@ -254,9 +230,10 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
             )
 
             # train model:
-            f1, loss, loss_train, loss_valid = self.fit(
+            f1, loss, loss_train, loss_valid = self.train(
                 data_train,
                 data_valid,
+                max_grad_norm=max_grad_norm,
                 **kwargs
             ) 
 
@@ -272,8 +249,8 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
                 print(f'New best f1: {f1:.2f} (args={str(kwargs)}')
                 best_f1 = f1
                 shutil.copytree(
-                    os.path.join(self._tmp_dir, 'f1'),
-                    os.path.join(self._model_dir, 'f1'),
+                    os.path.join(tmp_dir, 'f1'),
+                    os.path.join(model_dir, 'f1'),
                     dirs_exist_ok=True
                 )
 
@@ -281,92 +258,24 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
                 print(f'New best loss: {loss:.2f} (args={str(kwargs)}')
                 best_loss = loss
                 shutil.copytree(
-                    os.path.join(self._tmp_dir, 'loss'),
-                    os.path.join(self._model_dir, 'loss'),
+                    os.path.join(tmp_dir, 'loss'),
+                    os.path.join(model_dir, 'loss'),
                     dirs_exist_ok=True
                 )
 
         # clean up:
-        shutil.rmtree(self._tmp_dir, ignore_errors=True)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    def train(self, data:T_data, output_spans:bool=False,  output_attentions:bool=False, output_hidden_states:bool=False, shuffle:bool=False) -> Dict[str, any]:
-        '''One epoch of training.'''
-        self._model.train()
-
-        train_loss = 0
-        n_steps = 0
-
-        spans, attentions, hidden_states = [], [], []
-
-        for labels_tensor, weights_tensor, spans_tensor, kwargs in self._enumerate_data(data, desc="Training", shuffle=shuffle):
-            # if no loss fcn specified: use internal loss fcn of model
-            if self._loss_fcn is None: kwargs['labels'] = labels_tensor
-
-            # feed input through model:
-            model_out = self._model(**kwargs)
-
-            if spans_tensor is not None:
-                self._last_spans = [t.detach().to('cpu').numpy() for t in spans_tensor]
-                if output_spans: spans.extend(self._last_spans)
-
-            if hasattr(model_out, 'attentions'):
-                if model_out.attentions is not None:
-                    self._last_attentions = [t.detach().to('cpu').numpy() for t in model_out.attentions]
-                    if output_attentions: attentions.extend(self._last_attentions)
-
-            if hasattr(model_out, 'hidden_states'):
-                if model_out.hidden_states is not None:
-                    self._last_hidden_states = [t.detach().to('cpu').numpy() for t in model_out.hidden_states]
-                    if output_hidden_states: hidden_states.extend(self._last_hidden_states)
-
-            # calculate loss:
-            loss = None
-            if self._loss_fcn is not None:
-                predictions_tensor = model_out['logits']
-                loss = self._loss_fcn(predictions_tensor.type(torch.float), labels_tensor.type(torch.float))
-
-            elif hasattr(model_out, 'loss'):
-                loss = model_out.loss
-
-            else: raise AttributeError("No loss function defined.")
-
-            # update variables for mean loss calculation:
-            train_loss += loss.item()
-            n_steps += 1
-
-            # backpropagate loss:
-            loss.backward()
-
-            # clip grads to avoid exploding gradients:
-            nn.utils.clip_grad_norm_(self._model.parameters(), self._max_grad_norm)
-
-            # step optimization:
-            if self._optimizer != None:
-                self._optimizer.step()
-                self._optimizer.zero_grad()
-
-        # step scheduler:
-        if self._scheduler != None:
-            self._scheduler.step()
-
-        # create and return output dictionary:
-        result = {}
-        if output_spans:            result['spans'] = spans
-        if output_attentions:       result['attentions'] = attentions
-        if output_hidden_states:    result['hidden_states'] = hidden_states
-        if n_steps > 0:             result['loss'] = train_loss/n_steps
-        return result
-
-    def fit(self, data_train:T_data, data_valid:T_data, lr:float=5e-5, epochs:int=1, patience:int=0, bias:float=.5, pretrain:bool=False, use_f1:bool=True, shuffle:bool=False):
+    def train(self, data_train:T_data, data_valid:T_data, lr:float=5e-5, epochs:int=1, patience:int=0, max_grad_norm:float=1., pretrain:bool=False, use_f1:bool=True, shuffle:bool=False):
         '''Model training for several epochs using early stopping.'''
 
-        # update properties:
-        self._optimizer = AdamW(self._model.parameters(), lr=lr)
+        # create new optimizer and schedule:
+        optimizer = AdamW(self._model.parameters(), lr=lr)
 
         epochs_const = int(0.1 * epochs)
-        s_const  = ConstantLR(self._optimizer, factor=1., total_iters=epochs_const)
-        s_linear = LinearLR(self._optimizer, start_factor=1., end_factor=0.01, total_iters=epochs-epochs_const)
-        self._scheduler = SequentialLR(self._optimizer,
+        s_const  = ConstantLR(optimizer, factor=1., total_iters=epochs_const)
+        s_linear = LinearLR(optimizer, start_factor=1., end_factor=0.01, total_iters=epochs-epochs_const)
+        scheduler = SequentialLR(optimizer,
             [s_const, s_linear],
             milestones=[epochs_const]
         )
@@ -385,8 +294,8 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
 
         for i in trange(int(epochs), desc="Epoch"):
             # train one epoch using training data and predict on test data:
-            train_out = self.train(data_train, shuffle=shuffle)
-            valid_out = self.predict(data_valid)
+            train_out = self.epoch(data_train, optimizer=optimizer, scheduler=scheduler, max_grad_norm=max_grad_norm, shuffle=shuffle)
+            valid_out = self.predict(data_valid, output_probabilities=False)
             loss_train[i] = train_out['loss']
             loss_valid[i] = valid_out['loss']
 
@@ -399,7 +308,7 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
 
             if use_f1:
                 y_true = np.array(valid_out['labels'], dtype=int)
-                y_pred = np.array(valid_out['predictions'] > bias, dtype=int)
+                y_pred = np.array(valid_out['predictions'], dtype=int)
                 f1_valid[i] = f1_score(y_true, y_pred, average='macro')
                 print(f"  F1:        {f1_valid[i]:4.2f}")
                 print(f"  Precision: {precision_score(y_true, y_pred, average='macro'):4.2f}")
@@ -444,17 +353,87 @@ class TrainerTransformer(EvaluatorTransformer, Trainer):
         if use_f1:  return np.nanmax(f1_valid), np.nanmin(loss_valid), loss_train, loss_valid
         else:       return float('-inf'), np.nanmin(loss_valid), loss_train, loss_valid
 
+    def epoch(self, data:T_data, max_grad_norm:float=1., output_spans:bool=False, output_attentions:bool=False, output_hidden_states:bool=False, shuffle:bool=False, optimizer:Optional[nn.Module]=None, scheduler:Optional[nn.Module]=None) -> Dict[str, any]:
+        '''One epoch of training.'''
+        self._model.train()
+
+        train_loss = 0
+        n_steps = 0
+
+        spans, attentions, hidden_states = [], [], []
+
+        for labels_tensor, weights_tensor, spans_tensor, kwargs in self._enumerate_data(data, desc="Training", shuffle=shuffle):
+            # if no loss fcn specified: use internal loss fcn of model
+            if self._loss_fcn is None: kwargs['labels'] = labels_tensor
+
+            # feed input through model:
+            model_out = self._model(**kwargs)
+
+            if spans_tensor is not None:
+                self._last_spans = [t.detach().to('cpu').numpy() for t in spans_tensor]
+                if output_spans: spans.extend(self._last_spans)
+
+            if hasattr(model_out, 'attentions'):
+                if model_out.attentions is not None:
+                    self._last_attentions = [t.detach().to('cpu').numpy() for t in model_out.attentions]
+                    if output_attentions: attentions.extend(self._last_attentions)
+
+            if hasattr(model_out, 'hidden_states'):
+                if model_out.hidden_states is not None:
+                    self._last_hidden_states = [t.detach().to('cpu').numpy() for t in model_out.hidden_states]
+                    if output_hidden_states: hidden_states.extend(self._last_hidden_states)
+
+            # calculate loss:
+            loss = None
+            if self._loss_fcn is not None:
+                loss = self._loss_fcn(
+                    model_out.logits.type(torch.float),
+                    nn.functional.one_hot(labels_tensor, num_classes=self._num_labels).type(torch.float)
+                )
+
+            elif hasattr(model_out, 'loss'):
+                loss = model_out.loss
+
+            else: raise AttributeError("No loss function defined.")
+
+            # update variables for mean loss calculation:
+            train_loss += loss.item()
+            n_steps += 1
+
+            # backpropagate loss:
+            loss.backward()
+
+            # clip grads to avoid exploding gradients:
+            nn.utils.clip_grad_norm_(self._model.parameters(), max_grad_norm)
+
+            # step optimization:
+            if optimizer != None:
+                optimizer.step()
+                optimizer.zero_grad()
+
+        # step scheduler:
+        if scheduler != None:
+            scheduler.step()
+
+        # create and return output dictionary:
+        result = {}
+        if output_spans:            result['spans'] = spans
+        if output_attentions:       result['attentions'] = attentions
+        if output_hidden_states:    result['hidden_states'] = hidden_states
+        if n_steps > 0:             result['loss'] = train_loss/n_steps
+        return result
+
 ####################################################################################################
 # Main-Function:                                                                                   #
 ####################################################################################################
 
 def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
-        learning_rate:     float           = 5e-5,
+        learning_rate:     Iterable[float] = [5e-5],
         batch_size:        int             = 8,
-        epochs:            int             = 4,
-        patience:          int             = 1,
+        epochs:            Iterable[int]   = [4],
+        patience:          Iterable[int]   = [1],
         iterations:        Iterable[int]   = range(5),
-        normalize_fcn:     T_norm          = 'min-max',
+        normalize_fcn:     T_norm          = None,
         shuffle:           bool            = False,
         train:             bool            = False,
         predict:           bool            = False,
@@ -481,7 +460,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
         iterations:        K-Fold iterations (default:[0,1,2,3,4,5])
 
-        normalize_fcn:     Normalization applied on the results after prediction (default:'min-max')
+        normalize_fcn:     Normalization applied on the results after prediction (default:no normalization)
 
         shuffle:           Shuffle data (default:False)
 
@@ -525,15 +504,15 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
                     #weight=None,
                     reduction='mean'
                 ),
-                normalize_fcn=normalize_fcn,
-                model_dir=model_dir
+                normalize_fcn=normalize_fcn
             )
 
             # train model:
-            trainer(
+            trainer.fit(
                 model=model_name,
                 data_train=data_train,
                 data_valid=data_valid,
+                model_dir=model_dir,
                 modelargs={
                     'lr':learning_rate,
                     'epochs':epochs,
@@ -547,13 +526,12 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 #            trainer.save_model(path=model_dir)
 
             # save history:
-            os.makedirs(model_dir + '/hist.json', exist_ok=True)
-            with open(model_dir + '/hist.json', 'w') as file:
-                file.write(str(trainer.train_history))
+            with open(model_dir + '/hist.json', 'w') as f:
+                json.dump(trainer.train_history, f)
 
         if not (train or eval_explanations):
             # load model:
-            evaluator = EvaluatorTransformer.load(
+            evaluator = TrainerTransformer.load(
                 dir=os.path.join(model_dir, 'f1'),
                 batch_size=batch_size,
                 loss_fcn=torch.nn.CrossEntropyLoss(
@@ -593,75 +571,75 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Train and/or Evaluate a baseline model.')
     parser.add_argument('model_name',
         type=str,
-        help='Name of the model to be trained (e.g.: "bert-base-uncased")'
+        help='name of the model to be trained (e.g.: "bert-base-uncased")'
     )
     parser.add_argument('text_column',
         type=str,
-        help='Name of the column to be used as the model\'s input',
+        help='name of the column to be used as the model\'s input',
     )
     parser.add_argument('label_column',
         type=str,
-        help='Name of the column to be used as the label',
+        help='name of the column to be used as the label',
     )
     parser.add_argument('dataset_name',
         type=str,
-        help='Name of the dataset (e.g.: "incidents")'
+        help='name of the dataset (e.g.: "incidents")'
     )
-    parser.add_argument('--learning_rate',
-        metavar='-lr',
+    parser.add_argument('-lr', '--learning_rate',
+        metavar='LR',
         nargs='+',
         type=float,
         default=[5e-5],
-        help='Learning rate (Adam): 5e-5, 3e-5, 2e-5 [Devlin et al.]'
+        help='learning rate (Adam): 5e-5, 3e-5, 2e-5 [Devlin et al.]'
     )
-    parser.add_argument('--batch_size',
-        metavar='-bs',
+    parser.add_argument('-bs', '--batch_size',
+        metavar='BS',
         type=int,
         default=8,
-        help='Batch size: 16, 32 [Devlin et al.]'
+        help='batch size: 16, 32 [Devlin et al.]'
     )
-    parser.add_argument('--epochs',
-        metavar='-e',
+    parser.add_argument('-e', '--epochs',
+        metavar='E',
         nargs='+',
         type=int,
         default=[4],
-        help='Number of epochs: 2, 3, 4 [Devlin et al.]'
+        help='number of epochs: 2, 3, 4 [Devlin et al.]'
     )
-    parser.add_argument('--patience',
-        metavar='-p',
+    parser.add_argument('-p', '--patience',
+        metavar='P',
         nargs='+',
         type=int,
         default=[1],
-        help='Patience for early stopping (0 means no early stopping)'
+        help='patience for early stopping (0 means no early stopping)'
     )
-    parser.add_argument('--iterations',
-        metavar='-i',
+    parser.add_argument('-i', '--iterations',
+        metavar='I',
         nargs='+',
         type=int,
         default=list(range(5)),
-        help='K-Fold iterations'
+        help='k-fold iterations'
     )
-    parser.add_argument('--normalize_fcn',
-        metavar='-nf',
+    parser.add_argument('-nf', '--normalize_fcn',
+        metavar='NF',
         type=str,
-        default='min-max',
-        help='Normalization applied on the results after prediction (default:\'min-max\')'
+        default=None,
+        help='normalization applied on the results after prediction (default: no normalization)'
     )
     parser.add_argument('--shuffle',
         action='store_true',
-        help='Shuffle data'
+        help='shuffle data'
     )
     parser.add_argument('--train',
         action='store_true',
-        help='Only train model'
+        help='only train model'
     )
     parser.add_argument('--predict',
         action='store_true',
-        help='Only predict test set'
+        help='only predict test set'
     )
     parser.add_argument('--eval_explanations',
         action='store_true',
-        help='Evaluate attentions against spans'
+        help='evaluate attentions against spans'
     )
 
     # parse arguments:

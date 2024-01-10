@@ -1,31 +1,29 @@
-python TrainerClassic.py bow-knn title hazard-category incidents
-python TrainerClassic.py bow-lr  title hazard-category incidents
-python TrainerClassic.py bow-svm title hazard-category incidents
+#!/bin/sh
+text_name=title
+data_name=incidents
 
-python TrainerClassic.py tfidf-knn title hazard-category incidents
-python TrainerClassic.py tfidf-lr  title hazard-category incidents
-python TrainerClassic.py tfidf-svm title hazard-category incidents
+####################################################################################################
+# Naive:                                                                                           #
+####################################################################################################
+python TrainerClassic.py bow-rnd $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py bow-sup $text_name $1 $data_name -nf 'softmax' --shuffle
 
-python TrainerClassic.py bow-knn title hazard incidents
-python TrainerClassic.py bow-lr  title hazard incidents
-python TrainerClassic.py bow-svm title hazard incidents
+####################################################################################################
+# Bag-of-Words:                                                                                    #
+####################################################################################################
+python TrainerClassic.py bow-knn $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py bow-lr  $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py bow-svm $text_name $1 $data_name -nf 'softmax' --shuffle
 
-python TrainerClassic.py tfidf-knn title hazard incidents
-python TrainerClassic.py tfidf-lr  title hazard incidents
-python TrainerClassic.py tfidf-svm title hazard incidents
+####################################################################################################
+# TF-IDF:                                                                                          #
+####################################################################################################
+python TrainerClassic.py tfidf-knn $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py tfidf-lr  $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py tfidf-svm $text_name $1 $data_name -nf 'softmax' --shuffle
 
-python TrainerClassic.py bow-knn title product-category incidents
-python TrainerClassic.py bow-lr  title product-category incidents
-python TrainerClassic.py bow-svm title product-category incidents
-
-python TrainerClassic.py tfidf-knn title product-category incidents
-python TrainerClassic.py tfidf-lr  title product-category incidents
-python TrainerClassic.py tfidf-svm title product-category incidents
-
-python TrainerClassic.py bow-knn title product incidents
-python TrainerClassic.py bow-lr  title product incidents
-python TrainerClassic.py bow-svm title product incidents
-
-python TrainerClassic.py tfidf-knn title product incidents
-python TrainerClassic.py tfidf-lr  title product incidents
-python TrainerClassic.py tfidf-svm title product incidents
+####################################################################################################
+# Transformers:                                                                                    #
+####################################################################################################
+python TrainerTransformer.py roberta-base $text_name $1 $data_name -e 20 -bs 16 -p 5 -nf 'softmax' --shuffle
+python TrainerTransformer.py xlm-roberta-base $text_name $1 $data_name -e 20 -bs 16 -p 5 -nf 'softmax' --shuffle
