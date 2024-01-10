@@ -28,10 +28,8 @@ TrainerClassic.py [-h] [-i I [I ...]] [-nf NF]
   -i I [I ...], --iterations I [I ...]
                         k-fold iterations
   -nf NF, --normalize_fcn NF
-                        normalization applied on the results after prediction
-                        (default: no normalization)
-  --pca                 use principal component analysis for reducing the
-                        embeding dimensions
+                        normalization applied on the results after prediction (default: no normalization)
+  --pca                 use principal component analysis for reducing the embedding dimensions
   --train               only train model
   --predict             only predict test set
   --eval_explanations   evaluate attentions against spans
@@ -64,8 +62,7 @@ TrainerTransformer.py [-h] [-lr LR [LR ...]] [-bs BS] [-e E [E ...]] [-p P [P ..
   -e E [E ...], --epochs E [E ...]
                         number of epochs: 2, 3, 4 [Devlin et al.]
   -p P [P ...], --patience P [P ...]
-                        patience for early stopping (0 means no early
-                        stopping)
+                        patience for early stopping (0 means no early stopping)
   -i I [I ...], --iterations I [I ...]
                         k-fold iterations
   -nf NF, --normalize_fcn NF
