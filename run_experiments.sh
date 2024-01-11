@@ -5,22 +5,22 @@ data_name=incidents
 ####################################################################################################
 # Naive:                                                                                           #
 ####################################################################################################
-python TrainerClassic.py bow-rnd $text_name $1 $data_name -nf 'softmax' --shuffle
-python TrainerClassic.py bow-sup $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py bow-rnd $text_name $1 $data_name -nf 'softmax'
+python TrainerClassic.py bow-sup $text_name $1 $data_name -nf 'softmax'
 
 ####################################################################################################
 # Bag-of-Words:                                                                                    #
 ####################################################################################################
-python TrainerClassic.py bow-knn $text_name $1 $data_name -nf 'softmax' --shuffle
-python TrainerClassic.py bow-lr  $text_name $1 $data_name -nf 'softmax' --shuffle
-python TrainerClassic.py bow-svm $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py bow-knn $text_name $1 $data_name -nf 'softmax'
+python TrainerClassic.py bow-lr  $text_name $1 $data_name -nf 'softmax'
+python TrainerClassic.py bow-svm $text_name $1 $data_name -nf 'softmax'
 
 ####################################################################################################
 # TF-IDF:                                                                                          #
 ####################################################################################################
-python TrainerClassic.py tfidf-knn $text_name $1 $data_name -nf 'softmax' --shuffle
-python TrainerClassic.py tfidf-lr  $text_name $1 $data_name -nf 'softmax' --shuffle
-python TrainerClassic.py tfidf-svm $text_name $1 $data_name -nf 'softmax' --shuffle
+python TrainerClassic.py tfidf-knn $text_name $1 $data_name -nf 'softmax'
+python TrainerClassic.py tfidf-lr  $text_name $1 $data_name -nf 'softmax'
+python TrainerClassic.py tfidf-svm $text_name $1 $data_name -nf 'softmax'
 
 ####################################################################################################
 # Transformers:                                                                                    #

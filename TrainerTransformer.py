@@ -214,7 +214,7 @@ class TrainerTransformer(Trainer):
         if n_steps > 0:             result['loss'] = eval_loss/n_steps
         return result
 
-    def fit(self, model:str, data_train:T_data, data_valid:T_data, max_grad_norm:float=1., model_dir:str='./model/', modelargs: Dict[str, Iterable[Any]]={}) -> None:
+    def fit(self, model:str, data_train:T_data, data_valid:T_data, max_grad_norm:float=1., model_dir:str='./model', modelargs: Dict[str, Iterable[Any]]={}) -> None:
         model_dir = os.path.abspath(model_dir)
         tmp_dir   = os.path.join(model_dir, '.tmp')
 
@@ -234,6 +234,7 @@ class TrainerTransformer(Trainer):
                 data_train,
                 data_valid,
                 max_grad_norm=max_grad_norm,
+                checkpoint_dir=tmp_dir,
                 **kwargs
             ) 
 
@@ -266,7 +267,7 @@ class TrainerTransformer(Trainer):
         # clean up:
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    def train(self, data_train:T_data, data_valid:T_data, lr:float=5e-5, epochs:int=1, patience:int=0, max_grad_norm:float=1., pretrain:bool=False, use_f1:bool=True, shuffle:bool=False):
+    def train(self, data_train:T_data, data_valid:T_data, lr:float=5e-5, epochs:int=1, patience:int=0, max_grad_norm:float=1., pretrain:bool=False, use_f1:bool=True, shuffle:bool=False, checkpoint_dir:str='./checkpoint'):
         '''Model training for several epochs using early stopping.'''
 
         # create new optimizer and schedule:
@@ -319,8 +320,8 @@ class TrainerTransformer(Trainer):
 
             # save models in first round:
             if i == 0:
-                if use_f1: self.save(os.path.join(self._tmp_dir, 'f1'))
-                self.save(os.path.join(self._tmp_dir, 'loss'))
+                if use_f1: self.save(os.path.join(checkpoint_dir, 'f1'))
+                self.save(os.path.join(checkpoint_dir, 'loss'))
 
                 # reactivate pretraining after saving:
                 if pretrain: self._model.set_pretrain()
@@ -330,7 +331,7 @@ class TrainerTransformer(Trainer):
             if not best_f1_found:
                 i_max_f1 = np.argmax(f1_valid[:i])
                 if f1_valid[i] > f1_valid[i_max_f1]:
-                    self.save(os.path.join(self._tmp_dir, 'f1'))
+                    self.save(os.path.join(checkpoint_dir, 'f1'))
                 elif i_max_f1 <= i - patience:
                     print(f"Early stopping for max. F1 initiated.\nBest epoch: {i_max_f1:d}\n")
                     best_f1_found = True
@@ -339,7 +340,7 @@ class TrainerTransformer(Trainer):
             if not best_loss_found:
                 i_min_loss = np.argmin(loss_valid[:i])
                 if loss_valid[i] < loss_valid[i_min_loss]:
-                    self.save(os.path.join(self._tmp_dir, 'loss'))
+                    self.save(os.path.join(checkpoint_dir, 'loss'))
                 elif i_min_loss <= i - patience:
                     print(f"Early stopping for min. loss initiated.\nBest epoch: {i_min_loss:d}\n")
                     best_loss_found = True
