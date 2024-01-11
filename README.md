@@ -5,50 +5,55 @@ Implementation of the paper "CICLe: Conformal In-Context Learning for Largescale
 
 ## Usage
 
-**Classic ML (*based on [scikit-learn](https://scikit-learn.org/stable/)*):**
+### Classic ML:
 ```
 TrainerClassic.py [-h] [-i I [I ...]] [-nf NF]
                   [--pca] [--train] [--predict] [--eval_explanations]
                   model_name text_column label_column dataset_name
+```
 
-Train and/or Evaluate a baseline model.
+*Train and/or Evaluate a baseline model based on [scikit-learn](https://scikit-learn.org/stable/).*
 
-positional arguments:
+**Positional Arguments:**
+```
   model_name            name of the model to be trained (e.g.: "bow-svm")
   text_column           name of the column to be used as the model's input
   label_column          name of the column to be used as the label
   dataset_name          name of the dataset (e.g.: "incidents")
+```
 
-options:
+**Options:**
+```
   -h, --help            show this help message and exit
   -i I [I ...], --iterations I [I ...]
                         k-fold iterations
   -nf NF, --normalize_fcn NF
-                        normalization applied on the results after prediction
-                        (default: no normalization)
-  --pca                 use principal component analysis for reducing the
-                        embeding dimensions
+                        normalization applied on the results after prediction (default: no normalization)
+  --pca                 use principal component analysis for reducing the embedding dimensions
   --train               only train model
   --predict             only predict test set
   --eval_explanations   evaluate attentions against spans
 ```
 
-**Transformers (*based on [huggingface.co](https://huggingface.co/)*):**
+### Transformers:
 ```
 TrainerTransformer.py [-h] [-lr LR [LR ...]] [-bs BS] [-e E [E ...]] [-p P [P ...]] [-i I [I ...]] [-nf NF]
                       [--shuffle] [--train] [--predict] [--eval_explanations]
                       model_name text_column label_column dataset_name
+```
 
-Train and/or Evaluate a baseline model.
+*Train and/or Evaluate a baseline model from [huggingface.co](https://huggingface.co/).*
 
-positional arguments:
-  model_name            name of the model to be trained (e.g.: "bert-base-
-                        uncased")
+**Positional arguments:**
+```
+  model_name            name of the model to be trained (e.g.: "bert-base-uncased")
   text_column           name of the column to be used as the model's input
   label_column          name of the column to be used as the label
   dataset_name          name of the dataset (e.g.: "incidents")
+```
 
-options:
+**Options:**
+```
   -h, --help            show this help message and exit
   -lr LR [LR ...], --learning_rate LR [LR ...]
                         learning rate (Adam): 5e-5, 3e-5, 2e-5 [Devlin et al.]
@@ -57,13 +62,11 @@ options:
   -e E [E ...], --epochs E [E ...]
                         number of epochs: 2, 3, 4 [Devlin et al.]
   -p P [P ...], --patience P [P ...]
-                        patience for early stopping (0 means no early
-                        stopping)
+                        patience for early stopping (0 means no early stopping)
   -i I [I ...], --iterations I [I ...]
                         k-fold iterations
   -nf NF, --normalize_fcn NF
-                        normalization applied on the results after prediction
-                        (default: no normalization)
+                        normalization applied on the results after prediction (default: no normalization)
   --shuffle             shuffle data
   --train               only train model
   --predict             only predict test set
