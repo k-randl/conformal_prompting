@@ -28,22 +28,22 @@ except ModuleNotFoundError: plt=None
 # Thread Functions:                                                                                #
 ####################################################################################################
 
-#def _calculate_idf(i, t, input_ids):
+#def _calculate_idf(id, input_ids):
 #    # count words:
 #    row = np.empty(len(input_ids), dtype=float)
-#    for j, doc in enumerate(input_ids):
-#        row[j] = (doc == t).sum()
-#    return i, -np.log((row > 0).mean(dtype=float))
+#    for i, doc in enumerate(input_ids):
+#        row[i] = (doc == id).sum()
+#    return id, -np.log((row > 0).mean(dtype=float))
 
-def _calculate_idf(i, t, input_ids):
+def _calculate_idf(id, input_ids):
     count = 0
 
     # count documents:
     for doc in input_ids:
-        count += int(t in doc)
+        count += int(id in doc)
     
-    if count == 0:  return i, 0.
-    else:           return i, np.log(float(len(input_ids)) / float(count))
+    if count == 0:  return id, 0.
+    else:           return id, np.log(float(len(input_ids)) / float(count))
 
 ####################################################################################################
 # Embedding Class:                                                                                 #
@@ -228,7 +228,7 @@ class EmbeddingBOW(Embedding):
 ####################################################################################################
 
 class EmbeddingTfIdf(Embedding):
-    def __init__(self, data:Union[Iterable[str], Iterable[Iterable[int]]], tokenizer:Optional[WordTokenizer]=None, num_workers:int=10) -> None:
+    def __init__(self, data:Union[Iterable[str], Iterable[Iterable[int]]], tokenizer:Optional[WordTokenizer]=None, num_workers:int=5) -> None:
         super().__init__(tokenizer)
 
         # stop on empty data:
@@ -251,8 +251,8 @@ class EmbeddingTfIdf(Embedding):
 
         # calculate inverse document frequency per sample:
         self._idf = np.zeros(self.num_tokens, dtype=float)
-        queue = ArgumentQueue(_calculate_idf, [(i,i) for i in range(self.num_tokens)], desc='Calculating inverse document frequency')
-        for i, v in queue(n_workers=num_workers, input_ids=data): self._idf[i] = v
+        queue = ArgumentQueue(_calculate_idf, [(i,) for i in range(self.num_tokens)], desc='Calculating inverse document frequency')
+        for i, v in queue(n_workers=num_workers, input_ids=data, timeout=1.): self._idf[i] = v
     
     def _encode_single(self, input_ids:Iterable[int]) -> Iterable[float]:
         '''Encodes a single text.

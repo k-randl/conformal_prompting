@@ -247,7 +247,7 @@ class TrainerTransformer(Trainer):
             self._train_history.append(hist_item)
 
             if f1 > best_f1:
-                print(f'New best f1: {f1:.2f} (args={str(kwargs)}')
+                print(f'New best f1: {f1:.2f} (args={str(kwargs)})')
                 best_f1 = f1
                 shutil.copytree(
                     os.path.join(tmp_dir, 'f1'),
@@ -256,7 +256,7 @@ class TrainerTransformer(Trainer):
                 )
 
             if loss < best_loss:
-                print(f'New best loss: {loss:.2f} (args={str(kwargs)}')
+                print(f'New best loss: {loss:.2f} (args={str(kwargs)})')
                 best_loss = loss
                 shutil.copytree(
                     os.path.join(tmp_dir, 'loss'),

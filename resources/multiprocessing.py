@@ -10,19 +10,18 @@ from typing import Callable, Tuple, Iterable, Union, Dict, Any
 ####################################################################################################
 
 class _queueWorker(Process):
-    def __init__(self, target:Callable[...,None], connection:Connection, bar:Union[tqdm,None]=None, daemon:Union[bool,None]=None, **kwargs) -> None:
+    def __init__(self, target:Callable[...,None], connection:Connection, timeout:Union[float,None]=None, daemon:Union[bool,None]=None, **kwargs) -> None:
         super().__init__(daemon=daemon)
-        self._target = target
-        self._queue  = connection
-        self._kwargs = kwargs
+        self._target  = target
+        self._queue   = connection
+        self._timeout = timeout
+        self._kwargs  = kwargs
 
     def run(self) -> None:
-        while True:
+        while self._queue.poll(self._timeout):
             # take next batch of arguments from the queue:
             try: args, kwargs = self._queue.recv()
-            except EOFError:
-                self._queue.close()
-                return
+            except EOFError: break
 
             # add static variables to kwargs:
             kwargs.update(self._kwargs)
@@ -30,6 +29,8 @@ class _queueWorker(Process):
             # run calculation:
             result = self._target(*args, **kwargs)
             self._queue.send(result)
+
+        self._queue.close()
 
 class ArgumentQueue:
     def __init__(self, target:Callable[...,Any], args:Union[Iterable[Iterable[Any]],None], kwargs:Union[Iterable[Dict[str, Any]],None]=None, bar:Union[tqdm,None]=None, **barargs) -> None:
@@ -73,7 +74,7 @@ class ArgumentQueue:
     def __len__(self) -> int:
         return self._size
 
-    def __call__(self, n_workers:int=5, **kwargs):
+    def __call__(self, n_workers:int=5, timeout:Union[float,None]=None, **kwargs):
         # update progress bar:
         inc = self._bar.total / max(self._size, 1)
         self._bar.reset()
@@ -88,7 +89,7 @@ class ArgumentQueue:
 
             # create pipe and worker:
             conn, worker_conn = Pipe()
-            worker = _queueWorker(self._target, worker_conn, **kwargs)
+            worker = _queueWorker(self._target, worker_conn, timeout, **kwargs)
 
             # append to lists:
             workers.append(worker)

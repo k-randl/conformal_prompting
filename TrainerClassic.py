@@ -207,7 +207,7 @@ class TrainerClassic(Trainer):
             self._train_history.append(hist_item)
 
             if score > best_score:
-                print(f'New best score: {score:.2f} (args={str(kwargs)}')
+                print(f'New best score: {score:.2f} (args={str(kwargs)})')
                 best_score  = score
                 best_model = self._model
 
