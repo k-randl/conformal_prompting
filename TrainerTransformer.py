@@ -119,15 +119,15 @@ class TrainerTransformer(Trainer):
 
             returns:        An instance of `TrainerTransformerTfIdf` with the model.
         '''
-        evaluator = TrainerTransformer(
+        trainer = TrainerTransformer(
+            num_labels=num_labels,
             batch_size=batch_size,
             normalize_fcn=normalize_fcn,
-            loss_fcn=loss_fcn,
-            _num_labels=num_labels
+            loss_fcn=loss_fcn
         )
-        evaluator._init_model(dir, **kwargs)
+        trainer._init_model(dir, **kwargs)
 
-        return evaluator
+        return trainer
 
     def save(self, dir:str) -> None:
         '''Saves a model to disk.
@@ -242,8 +242,8 @@ class TrainerTransformer(Trainer):
             hist_item = kwargs.copy()
             hist_item['max_f1'] = f1
             hist_item['min_loss'] = loss
-            hist_item['loss_train'] = loss_train
-            hist_item['loss_valid'] = loss_valid
+            hist_item['loss_train'] = loss_train.tolist()
+            hist_item['loss_valid'] = loss_valid.tolist()
             self._train_history.append(hist_item)
 
             if f1 > best_f1:
@@ -267,7 +267,7 @@ class TrainerTransformer(Trainer):
         # clean up:
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    def train(self, data_train:T_data, data_valid:T_data, lr:float=5e-5, epochs:int=1, patience:int=0, max_grad_norm:float=1., pretrain:bool=False, use_f1:bool=True, shuffle:bool=False, checkpoint_dir:str='./checkpoint'):
+    def train(self, data_train:T_data, data_valid:T_data, lr:float=5e-5, epochs:int=1, patience:int=0, max_grad_norm:float=1., pretrain:bool=False, use_f1:bool=True, shuffle:bool=False, checkpoint_dir:str='./checkpoint') -> Tuple[float, float, npt.NDArray, npt.NDArray]:
         '''Model training for several epochs using early stopping.'''
 
         # create new optimizer and schedule:
