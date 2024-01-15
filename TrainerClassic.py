@@ -157,6 +157,8 @@ class TrainerClassic(Trainer):
         trainer._model     = data['model']
         trainer._embedding = data['embedding_type'].load(dir, **kwargs)
 
+        return trainer
+
     def save(self, dir:str, **kwargs) -> None:
         '''Saves a model to disk.
 
