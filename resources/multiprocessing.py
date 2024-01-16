@@ -1,3 +1,4 @@
+from platform import system
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import Connection, wait
 
@@ -14,7 +15,7 @@ class _queueWorker(Process):
         super().__init__(daemon=daemon)
         self._target  = target
         self._queue   = connection
-        self._timeout = timeout
+        self._timeout = None if system() == 'Windows' else timeout
         self._kwargs  = kwargs
 
     def run(self) -> None:
