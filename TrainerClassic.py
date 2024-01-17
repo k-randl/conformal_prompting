@@ -210,7 +210,7 @@ class TrainerClassic(Trainer):
 
             if score > best_score:
                 print(f'New best score: {score:.2f} (args={str(kwargs)})')
-                best_score  = score
+                best_score = score
                 best_model = self._model
 
         # switch to model with best parameters:
