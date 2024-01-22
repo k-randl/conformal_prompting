@@ -275,10 +275,8 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         result_dir = f"results/{embedding_name}-{model_name}"
 
         if not (predict or eval_explanations):
-            # create tokenizer:
+            # create tokenizer and load data:
             tokenizer = WordTokenizer()
-
-            # load data:
             data_train, data_valid, data_test = load_data(
                 f"data/{dataset_name}/splits/",
                 text_column,
@@ -286,19 +284,18 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
                 i,
                 tokenizer
             )
+            for _ in data_train[0]: pass
+            tokenizer.train = False
 
             # create embedding:
             if embedding_name == "bow":
                 embedding = EmbeddingBOW(tokenizer)
-                for _ in data_train[0]: pass
-                tokenizer.train = False
 
             elif embedding_name == "tfidf":
                 embedding = EmbeddingTfIdf(
                     [entry['input_ids'].detach().numpy() for entry in data_train[0]],
                     tokenizer
                 )
-                tokenizer.train = False
 
             else: raise ValueError(f'Unknown embedding "{embedding_name}"!')
 
