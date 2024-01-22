@@ -161,8 +161,8 @@ class EvaluatorMirror(Evaluator):
 
     def predict(self, data:T_data, output_spans:bool=False, **kwargs) -> Dict[str, Any]:
         if self._base is not None:
-            return self._base.predict(data, output_spans, **kwargs)
-        else: raise RuntimeError(f'Instance of `{self.__name__}` has not been instatiated with an object. Predict function not available.')
+            return self._base.predict(data, output_spans=output_spans, **kwargs)
+        else: raise RuntimeError(f'Instance of `{self.__name__}` has not been instantiated with an object. Predict function not available.')
 
 
 class EvaluatorThreshold(EvaluatorMirror):
@@ -219,7 +219,7 @@ class EvaluatorMaxK(EvaluatorMirror):
 class EvaluatorConformal(EvaluatorMirror, metaclass=abc.ABCMeta):
     def _get_predictions(self, data:Union[T_data,None], y_pred:Union[npt.NDArray,None], y_true:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]:
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
-        if data is None: return {'labels':y_true, 'predictions':y_pred}
+        if data is None: return {'labels':y_true, 'probabilities':y_pred}
         else:            return super().predict(data, **kwargs)
 
     @abc.abstractmethod
@@ -243,19 +243,20 @@ class EvaluatorConformalAPS(EvaluatorConformal):
     def calibrate(self, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, y_true:Union[npt.NDArray,None]=None) -> None:
         results = self._get_predictions(data, y_pred, y_true)
         y_true = results['labels']
-        y_pred = results['predictions']
+        y_pred = results['probabilities']
         assert not (y_true is None)
         assert len(y_true) == len(y_pred)
 
         preds = y_pred.argsort(axis=1)[:,::-1]
         probs = np.cumsum(np.take_along_axis(y_pred, preds, axis=1), axis=1)
-        idxs  = np.argwhere(np.take_along_axis(y_true, preds, axis=1))
+        #idxs  = np.argwhere(np.take_along_axis(y_true, preds, axis=1))
+        idxs  = np.argwhere(y_true == preds)
 
         self.alphas = probs[idxs]
 
     def predict(self, epsilon:float, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]: 
         results = self._get_predictions(data, y_pred, **kwargs)
-        y_pred  = results['predictions']
+        y_pred  = results['probabilities']
 
         preds = y_pred.argsort(axis=1)[:,::-1]
         probs = np.take_along_axis(y_pred, preds, axis=1)
@@ -289,15 +290,15 @@ class EvaluatorConformalSimple(EvaluatorConformal):
     def calibrate(self, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, y_true:Union[npt.NDArray,None]=None) -> None:
         results = self._get_predictions(data, y_pred, y_true)
         y_true = results['labels']
-        y_pred = results['predictions']
+        y_pred = results['probabilities']
         assert not (y_true is None)
         assert len(y_true) == len(y_pred)
 
-        self.alphas = 1. - y_pred[y_true.astype(bool)]
+        self.alphas = 1. - y_pred[np.arange(len(y_true), dtype=int), y_true]
 
     def predict(self, epsilon:float, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]: 
         results = self._get_predictions(data, y_pred, **kwargs)
-        y_pred  = results['predictions']
+        y_pred  = results['probabilities']
 
         q = self.quantile(epsilon)
 
