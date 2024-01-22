@@ -10,7 +10,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import SequentialLR, ConstantLR, LinearLR
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, PreTrainedModel
+from transformers import PreTrainedTokenizerBase, AutoTokenizer, AutoModelForSequenceClassification, PreTrainedModel
 
 import numpy as np
 
@@ -47,13 +47,14 @@ class TrainerTransformer(Trainer):
         self._loss_fcn   = loss_fcn
 
     def _init_model(self, model:str, **kwargs):
-        model = AutoModelForSequenceClassification.from_pretrained(
+        self._tokenizer = AutoTokenizer.from_pretrained(model)  
+        self._model = AutoModelForSequenceClassification.from_pretrained(
             model,
             num_labels=self._num_labels,
             **kwargs
         )
 
-        self._model = nn.DataParallel(model)
+        self._model = nn.DataParallel(self._model)
         self._model.to(DEVICE)
         print('Running on', DEVICE)
 
@@ -87,6 +88,10 @@ class TrainerTransformer(Trainer):
                 self._last_texts.extend(texts)
 
             yield labels, weights, spans, kwargs
+
+    @property
+    def tokenizer(self) -> PreTrainedTokenizerBase:
+        return self._tokenizer
 
     @property
     def device(self) -> torch.device:
@@ -266,6 +271,12 @@ class TrainerTransformer(Trainer):
 
         # clean up:
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+        # load best:
+        self._init_model(os.path.join(model_dir, 'f1'),
+            output_attentions=False,
+            output_hidden_states=False
+        )
 
     def train(self, data_train:T_data, data_valid:T_data, lr:float=5e-5, epochs:int=1, patience:int=0, max_grad_norm:float=1., pretrain:bool=False, use_f1:bool=True, shuffle:bool=False, checkpoint_dir:str='./checkpoint') -> Tuple[float, float, npt.NDArray, npt.NDArray]:
         '''Model training for several epochs using early stopping.'''
@@ -474,9 +485,6 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
     # load mappings:
     label_map = load_mappings(f"data/{dataset_name}/splits/", label_column)
 
-    # load tokenizer:
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
     for i in iterations:
         print("\n----------------------------------------------------------------------------------------------------")
         print(f" {model_name}: iteration {i:d}")
@@ -486,15 +494,6 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         # define paths:
         model_dir = f"models/{model_name}/{model_name}-{label_column}-{i:d}"
         result_dir = f"results/{model_name}"
-
-        # load data:
-        data_train, data_valid, data_test = load_data(
-            f"data/{dataset_name}/splits/",
-            text_column,
-            label_column,
-            i,
-            tokenizer
-        )
 
         if not (predict or eval_explanations):
             # create trainer:
@@ -506,6 +505,15 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
                     reduction='mean'
                 ),
                 normalize_fcn=normalize_fcn
+            )
+
+            # load data:
+            data_train, data_valid, data_test = load_data(
+                f"data/{dataset_name}/splits/",
+                text_column,
+                label_column,
+                i,
+                trainer.tokenizer
             )
 
             # train model:
@@ -530,9 +538,9 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
             with open(model_dir + '/hist.json', 'w') as f:
                 json.dump(trainer.train_history, f)
 
-        if not (train or eval_explanations):
+        else:
             # load model:
-            evaluator = TrainerTransformer.load(
+            trainer = TrainerTransformer.load(
                 dir=os.path.join(model_dir, 'f1'),
                 batch_size=batch_size,
                 loss_fcn=torch.nn.CrossEntropyLoss(
@@ -545,8 +553,18 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
                 output_hidden_states=False
             )
 
+            # load data:
+            _, _, data_test = load_data(
+                f"data/{dataset_name}/splits/",
+                text_column,
+                label_column,
+                i,
+                trainer.tokenizer
+            )
+
+        if not (train or eval_explanations):
             # predict test set:
-            results = evaluator.predict(
+            results = trainer.predict(
                 data_test,
                 output_spans=False,
                 output_attentions=False,

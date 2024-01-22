@@ -79,6 +79,11 @@ class Evaluator(metaclass=abc.ABCMeta):
         '''`int`: the number of unique labels predicted by the model.'''
         self._num_labels
 
+    @abc.abstractproperty
+    def tokenizer(self) -> Callable[[str], Iterable[int]]:
+        '''A callable that tokenizes strings to be used by the model.'''
+        raise NotImplementedError()
+
     @abc.abstractstaticmethod
     def load(dir:str, normalize_fcn:T_norm=None, **kwargs) -> 'Evaluator':
         '''Loads a model from disk.
@@ -123,6 +128,13 @@ class EvaluatorMirror(Evaluator):
         '''`Iterable[str] | None]`: the texts of the last evaluated dataset.'''
         if self._base is not None:
             return self._base.last_texts
+        else: return None
+
+    @property
+    def tokenizer(self) -> Callable[[str], Iterable[int]]:
+        '''A callable that tokenizes strings to be used by the model.'''
+        if self._base is not None:
+            return self._base.tokenizer
         else: return None
 
     @staticmethod

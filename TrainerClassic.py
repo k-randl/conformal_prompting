@@ -29,7 +29,7 @@ from typing import Iterable, Tuple, Type, Dict, Any
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-from resources.models import SupportModel, RandomModel, DummyModel
+from resources.models import SupportModel, RandomModel
 
 MODELS = { 
     "rnd": (RandomModel, {}),
@@ -102,6 +102,11 @@ class TrainerClassic(Trainer):
 
         # encode and return data:
         return self._embedding(x), np.array(y, dtype=int), np.array(w, dtype=float)
+
+    @property
+    def tokenizer(self) -> WordTokenizer:
+        if self._embedding is None: return None
+        else: return self._embedding.tokenizer
 
     @property
     def embedding(self) -> Embedding:
@@ -259,9 +264,6 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
     # load mappings:
     label_map = load_mappings(f"data/{dataset_name}/splits/", label_column)
 
-    # load tokenizer:
-    tokenizer = WordTokenizer()
-
     for i in iterations:
         print("\n----------------------------------------------------------------------------------------------------")
         print(f" {model_name}: iteration {i:d}")
@@ -272,16 +274,19 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         model_dir = f"models/{embedding_name}-{model_name}/{embedding_name}-{model_name}-{label_column}-{i:d}"
         result_dir = f"results/{embedding_name}-{model_name}"
 
-        # load data:
-        data_train, data_valid, data_test = load_data(
-            f"data/{dataset_name}/splits/",
-            text_column,
-            label_column,
-            i,
-            tokenizer
-        )
-
         if not (predict or eval_explanations):
+            # create tokenizer:
+            tokenizer = WordTokenizer()
+
+            # load data:
+            data_train, data_valid, data_test = load_data(
+                f"data/{dataset_name}/splits/",
+                text_column,
+                label_column,
+                i,
+                tokenizer
+            )
+
             # create embedding:
             if embedding_name == "bow":
                 embedding = EmbeddingBOW(tokenizer)
@@ -327,6 +332,15 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
             trainer = TrainerClassic.load(
                 dir=model_dir,
                 normalize_fcn=normalize_fcn
+            )
+
+            # load data:
+            _, _, data_test = load_data(
+                f"data/{dataset_name}/splits/",
+                text_column,
+                label_column,
+                i,
+                trainer.tokenizer
             )
 
         if not (train or eval_explanations):
