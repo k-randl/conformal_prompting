@@ -47,12 +47,12 @@ class TrainerTransformer(Trainer):
         self._loss_fcn   = loss_fcn
 
     def _init_model(self, model:str, **kwargs):
-        self._tokenizer = AutoTokenizer.from_pretrained(model)  
         self._model = AutoModelForSequenceClassification.from_pretrained(
             model,
             num_labels=self._num_labels,
             **kwargs
         )
+        self._tokenizer = AutoTokenizer.from_pretrained(f'{self._model.config.model_type}-base')
 
         self._model = nn.DataParallel(self._model)
         self._model.to(DEVICE)
