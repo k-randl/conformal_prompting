@@ -9,7 +9,7 @@ from sklearn.base import ClassifierMixin
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Callable, Iterable, Union, Literal, Dict, Any
+from typing import Callable, Iterable, Union, Optional, Literal, Dict, Any
 from resources.data_io import T_data
 
 T_norm = Union[
@@ -111,9 +111,12 @@ class Evaluator(metaclass=abc.ABCMeta):
 
 
 class EvaluatorMirror(Evaluator):
-    def __init__(self, obj:Union[Evaluator, None]=None) -> None:
-        super().__init__(obj._normalize_fcn, obj._num_labels)
-        self._model = obj._model
+    def __init__(self, obj:Optional[Evaluator]=None, num_labels:int=0, normalize_fcn:T_norm=None) -> None:
+        super().__init__(
+            model         = None if obj is None else obj._model,
+            num_labels    = num_labels if obj is None else obj._num_labels,
+            normalize_fcn = normalize_fcn if obj is None else obj._normalize_fcn
+        )
         self._base = obj
 
     @property
@@ -170,9 +173,11 @@ class EvaluatorThreshold(EvaluatorMirror):
         results = {}
 
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
-        if not (data is None):
+        if data is not None:
             results = super().predict(data, **kwargs)
-            y_pred = results['predictions']
+            y_pred = results['probabilities']
+
+        else: y_pred = np.apply_along_axis(self._normalize_fcn, -1, y_pred)
 
         preds = y_pred.argsort(axis=1)[:,::-1]
         probs = np.take_along_axis(y_pred, preds, axis=1)
@@ -196,9 +201,11 @@ class EvaluatorMaxK(EvaluatorMirror):
         results = {}
 
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
-        if not (data is None):
+        if data is not None:
             results = super().predict(data, **kwargs)
-            y_pred = results['predictions']
+            y_pred = results['probabilities']
+
+        else: y_pred = np.apply_along_axis(self._normalize_fcn, -1, y_pred)
 
         preds = y_pred.argsort(axis=1)[:,::-1]
         probs = np.take_along_axis(y_pred, preds, axis=1)
@@ -219,7 +226,7 @@ class EvaluatorMaxK(EvaluatorMirror):
 class EvaluatorConformal(EvaluatorMirror, metaclass=abc.ABCMeta):
     def _get_predictions(self, data:Union[T_data,None], y_pred:Union[npt.NDArray,None], y_true:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]:
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
-        if data is None: return {'labels':y_true, 'probabilities':y_pred}
+        if data is None: return {'labels':y_true, 'probabilities':np.apply_along_axis(self._normalize_fcn, -1, y_pred)}
         else:            return super().predict(data, **kwargs)
 
     @abc.abstractmethod
