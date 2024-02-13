@@ -42,7 +42,7 @@ MODELS = {
     }),
     "knn": (KNeighborsClassifier, {
         'n_neighbors':[2,4,8],
-        'metric':['l1', 'l2'],
+        'metric':['cosine'],
         'n_jobs':[-1]
     }),
     "lr": (LogisticRegression, {
