@@ -541,7 +541,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         else:
             # load model:
             trainer = TrainerTransformer.load(
-                dir=os.path.join(model_dir, 'f1'),
+                dir=os.path.join(model_dir, 'loss'),
                 batch_size=batch_size,
                 loss_fcn=torch.nn.CrossEntropyLoss(
                     #weight=None,
