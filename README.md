@@ -1,7 +1,11 @@
 # conformal_prompting
 Implementation of the paper "CICLe: Conformal In-Context Learning for Largescale Multi-Class Food Risk Classification"
 
-**Abstract:** *Contaminated or adulterated food poses a substantial risk to human health. Given sets of labeled web texts for training, Machine Learning and Natural Language Processing can be applied to automatically extract pointers towards such risks in order to generate early warnings. We publish a dataset of 7,619 short texts describing food recalls. Each text is manually labeled, on two granularity levels (coarse and fine), for food products and hazards that the recall corresponds to. We describe the dataset, also presenting baseline scores of naive, traditional, and transformer models. We show that Support Vector Machines based on a Bag of Words representation outperform RoBERTa and XLM-R on classes with low support. We also apply in-context learning with PaLM, leveraging Conformal Prediction to improve it by reducing the number of classes used to select the few-shots. We call this method Conformal In-Context Learning.*
+**Abstract:** *Contaminated or adulterated food poses a substantial risk to human health. Given sets of labeled web texts for training, Machine Learning and Natural Language Processing can be applied to automatically detect such risks given the necessary labeled training data.
+We publish a dataset of 7,546 short texts describing public food recall announcements. Each text is manually labeled, on two granularity levels (coarse and fine), for food products and hazards that the recall corresponds to. 
+We describe the dataset and benchmark naive, traditional, and Transformer models. Based on our analysis, Logistic Regression based on a tf-idf representation outperforms RoBERTa and XLM-R on classes with low support.
+%We benchmark also few-shot prompting, showing that sample matching based on cosine similarity works best when the number of classes is high.
+Finally, we discuss different prompting strategies and present an LLM-in-the-loop framework, based on Conformal Prediction, which boosts the performance of the base classifier while reducing power consumption compared to normal prompting.*
 
 ## Usage
 
