@@ -169,7 +169,7 @@ class EvaluatorMirror(Evaluator):
 
 
 class EvaluatorThreshold(EvaluatorMirror):
-    def predict(self, epsilon:float, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]:
+    def predict(self, alpha:float, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, **kwargs) -> Dict[str, any]:
         results = {}
 
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
@@ -188,7 +188,7 @@ class EvaluatorThreshold(EvaluatorMirror):
 
             for y, p in zip(preds[i], probs[i]):
                 prediction_set.append((y, p))
-                if p < (1. - epsilon): break
+                if p < (1. - alpha): break
 
             y_thld.append(np.array(prediction_set, dtype=np.dtype([('i', 'u4'), ('p', 'f4')])))
 
@@ -197,7 +197,7 @@ class EvaluatorThreshold(EvaluatorMirror):
 
 
 class EvaluatorMaxK(EvaluatorMirror):
-    def predict(self, k:int, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]:
+    def predict(self, k:int, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, **kwargs) -> Dict[str, any]:
         results = {}
 
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
@@ -224,30 +224,28 @@ class EvaluatorMaxK(EvaluatorMirror):
 
 
 class EvaluatorConformal(EvaluatorMirror, metaclass=abc.ABCMeta):
-    def _get_predictions(self, data:Union[T_data,None], y_pred:Union[npt.NDArray,None], y_true:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]:
+    def _get_predictions(self, data:Optional[T_data], y_pred:Optional[npt.NDArray], y_true:Optional[npt.NDArray]=None, **kwargs) -> Dict[str, any]:
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
         if data is None: return {'labels':y_true, 'probabilities':np.apply_along_axis(self._normalize_fcn, -1, y_pred)}
         else:            return super().predict(data, **kwargs)
 
-    @abc.abstractmethod
-    def quantile(self, epsilon:float) -> Union[Iterable[float], float]: pass
+    def quantile(self, alpha:float) -> float:
+        n = len(self.cal_scores)
+        return np.quantile(
+            self.cal_scores,
+            np.ceil((n+1.)*(1.-alpha))/n,
+            method='higher'
+        )
 
     @abc.abstractmethod
-    def calibrate(self, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, y_true:Union[npt.NDArray,None]=None) -> None: pass
+    def calibrate(self, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, y_true:Optional[npt.NDArray]=None) -> None: pass
 
     @abc.abstractmethod
-    def predict(self, epsilon:float, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, loss_fcn:Union[nn.Module, None]=None, output_attentions:bool=False, output_hidden_states:bool=False) -> Dict[str, any]: pass
+    def predict(self, alpha:float, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, min_k:Optional[int]=None, **kwargs) -> Dict[str, any]: pass
 
 
 class EvaluatorConformalAPS(EvaluatorConformal):
-    def quantile(self, epsilon:float) -> float:
-        return np.quantile(
-            self.alphas,
-            np.ceil((len(self.alphas)+1)*(1-epsilon))/len(self.alphas),
-            interpolation='higher'
-        )
-
-    def calibrate(self, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, y_true:Union[npt.NDArray,None]=None) -> None:
+    def calibrate(self, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, y_true:Optional[npt.NDArray]=None) -> None:
         results = self._get_predictions(data, y_pred, y_true)
         y_true = results['labels']
         y_pred = results['probabilities']
@@ -256,69 +254,66 @@ class EvaluatorConformalAPS(EvaluatorConformal):
 
         preds = y_pred.argsort(axis=1)[:,::-1]
         probs = np.cumsum(np.take_along_axis(y_pred, preds, axis=1), axis=1)
-        #idxs  = np.argwhere(np.take_along_axis(y_true, preds, axis=1))
-        idxs  = np.argwhere(y_true == preds)
 
-        self.alphas = probs[idxs]
+        self.cal_scores = np.take_along_axis(probs, preds, axis=1)[np.arange(len(y_true), dtype=int), y_true]
 
-    def predict(self, epsilon:float, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]: 
+    def predict(self, alpha:float, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, min_k:Optional[int]=None, **kwargs) -> Dict[str, any]: 
         results = self._get_predictions(data, y_pred, **kwargs)
         y_pred  = results['probabilities']
 
         preds = y_pred.argsort(axis=1)[:,::-1]
-        probs = np.take_along_axis(y_pred, preds, axis=1)
+        probs = np.cumsum(np.take_along_axis(y_pred, preds, axis=1), axis=1)
 
-        q = self.quantile(epsilon)
+        q = self.quantile(alpha)
 
         y_conf = []
         for i in range(y_pred.shape[0]):
-            prediction_set = []
-            total_p = 0.
+            ps = preds[i, probs[i] <= q]
+            ps = [(y, y_pred[i, y]) for y in ps]
 
-            for y, p in zip(preds[i], probs[i]):
-                prediction_set.append((y, p))
-                total_p += p
-                if total_p >= q: break
+            if min_k is not None:
+                for y in np.argsort(y_pred[i])[::-1][len(ps):min_k]:
+                    ps.append((y, y_pred[i, y]))
 
-            y_conf.append(np.array(prediction_set, dtype=np.dtype([('i', 'u4'), ('p', 'f4')])))
+            ps.sort(key=lambda e: e[1], reverse=True)
+
+            y_conf.append(
+                np.array(ps, dtype=np.dtype([('i', 'u4'), ('p', 'f4')]))
+            )
 
         results['predictions'] = y_conf
         return results
 
 
 class EvaluatorConformalSimple(EvaluatorConformal):
-    def quantile(self, epsilon:float) -> float:
-        return np.quantile(
-            self.alphas,
-            np.ceil((len(self.alphas)+1)*(1-epsilon))/len(self.alphas),
-            interpolation='higher'
-        )
-
-    def calibrate(self, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, y_true:Union[npt.NDArray,None]=None) -> None:
+    def calibrate(self, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, y_true:Optional[npt.NDArray]=None) -> None:
         results = self._get_predictions(data, y_pred, y_true)
         y_true = results['labels']
         y_pred = results['probabilities']
         assert not (y_true is None)
         assert len(y_true) == len(y_pred)
 
-        self.alphas = 1. - y_pred[np.arange(len(y_true), dtype=int), y_true]
+        self.cal_scores = 1. - y_pred[np.arange(len(y_true), dtype=int), y_true]
 
-    def predict(self, epsilon:float, data:Union[T_data,None]=None, y_pred:Union[npt.NDArray,None]=None, **kwargs) -> Dict[str, any]: 
+    def predict(self, alpha:float, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, min_k:Optional[int]=None, **kwargs) -> Dict[str, any]: 
         results = self._get_predictions(data, y_pred, **kwargs)
         y_pred  = results['probabilities']
 
-        q = self.quantile(epsilon)
+        q = self.quantile(alpha)
 
         y_conf = []
         for i in range(y_pred.shape[0]):
-            preds = np.argwhere(y_pred[i] >= (1.-q))[:,0]
-            preds = preds[np.argsort(y_pred[i, preds])][::-1]
+            ps = np.argwhere((1. - y_pred[i]) <= q)[:,0]
+            ps = [(y, y_pred[i, y]) for y in ps]
+
+            if min_k is not None:
+                for y in np.argsort(y_pred[i])[::-1][len(ps):min_k]:
+                    ps.append((y, y_pred[i, y]))
+
+            ps.sort(key=lambda e: e[1], reverse=True)
 
             y_conf.append(
-                np.array(
-                    [(y, y_pred[i, y]) for y in preds],
-                    dtype=np.dtype([('i', 'u4'), ('p', 'f4')])
-                )
+                np.array(ps, dtype=np.dtype([('i', 'u4'), ('p', 'f4')]))
             )
 
         results['predictions'] = y_conf
