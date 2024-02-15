@@ -4,7 +4,6 @@ Implementation of the paper "CICLe: Conformal In-Context Learning for Largescale
 **Abstract:** *Contaminated or adulterated food poses a substantial risk to human health. Given sets of labeled web texts for training, Machine Learning and Natural Language Processing can be applied to automatically detect such risks given the necessary labeled training data.
 We publish a dataset of 7,546 short texts describing public food recall announcements. Each text is manually labeled, on two granularity levels (coarse and fine), for food products and hazards that the recall corresponds to. 
 We describe the dataset and benchmark naive, traditional, and Transformer models. Based on our analysis, Logistic Regression based on a tf-idf representation outperforms RoBERTa and XLM-R on classes with low support.
-%We benchmark also few-shot prompting, showing that sample matching based on cosine similarity works best when the number of classes is high.
 Finally, we discuss different prompting strategies and present an LLM-in-the-loop framework, based on Conformal Prediction, which boosts the performance of the base classifier while reducing power consumption compared to normal prompting.*
 
 ## Usage
