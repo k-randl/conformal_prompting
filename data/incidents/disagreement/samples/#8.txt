@@ -1,0 +1,88 @@
+[2010 - http://tna.europarchive.org/content/20110405220019/http:/www.food.gov.uk/enforcement/alerts/2010/nov/cooplemonlimeflavourspringwater]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+The Co-operative Group recalls certain batch codes of its own brand Lemon and Lime Flavour Still Spring Water Drink (6 x 500ml) due to an unpleasant aroma and possible mould growth Friday 19 November 2010 Recalled from customers Ref: 15/2010 Product: The Co-operative Lemon and Lime Flavour Still Spring Water Drink, 6 x 500ml Best Before dates: December 2010 February 2011 Batch codes: L0158, L0159, L0175, L0179, L0229, L0230 Risk: Certain batches of the above product have been recalled due to an unpleasant aroma and possible risk of mould growth. Action taken by the Company: The Co-operative Group has recalled the above batches of product from consumers on a precautionary basis. Product recall notices have been displayed in stores that sell the product, explaining to customers the reason for recall and the actions they can take if they have bought the affected product. No other Co-operative Group products are known to be affected. Advice to consumers: If you have purchased The Co-operative Lemon and Lime Flavour Still Spring Water Drink with any of the above batch codes, please do not consume the product. For refund information, please refer to the attached recall notice issued by The Co-operative Group. Related links Product Recall Notice: Co-operative Lemon and Lime Flavour Still Spring Water Drink 6 x 500ml  (pdf 28KB) External links  The Food Standards Agency has no responsibility for the content of external websites The Co-operative The Co-operative Group website Get Adobe Acrobat readerYou may need the free Acrobat Reader to view a pdf
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

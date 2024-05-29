@@ -1,0 +1,89 @@
+[2021 - https://www.fsai.ie/news_centre/food_alerts/seven_seas_omega_3_immunity.html]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+Recall of Batches of Seven Seas Omega-3 and Immunity 30 Day Duo Pack due to the Presence of 2-Chloroethanol, a Recognised Reaction Product of Ethylene Oxide Friday, 13 August 2021 Summary Category 2: For Information Alert Notification: 2021.61 Product: Seven Seas Omega-3 & Immunity, pack size: 30 Day Duo Pack Batch Code: Batch 247548: Best Before Jul-22  Batch 247549: Best Before Jul-22  Batch 256666: Best Before March-23  Country Of Origin: United Kingdom Message: P&G UK Limited is recalling the above batches of Seven Seas Omega-3 & Immunity 30 Day Duo Pack due to the presence of 2-chloroethanol, which is a recognised reaction product of ethylene oxide. Ethylene oxide is a pesticide that is not permitted for use in foods sold in the EU, but is approved for use by other countries outside the EU. Although the consumption of the contaminated product does not pose an acute risk to health, there is an increased risk if there is continued consumption of contaminated food over a long period of time. Therefore, exposure to this substance needs to be minimised. Point-of-sale recall notices will be displayed in stores supplied with the implicated batches.
+Recall of Batches of Seven Seas Omega-3 and Immunity 30 Day Duo Pack due to the Presence of 2-Chloroethanol, a Recognised Reaction Product of Ethylene Oxide Friday, 13 August 2021 Summary Category 2: For Information Alert Notification: 2021.61 Product: Seven Seas Omega-3 & Immunity, pack size: 30 Day Duo Pack Batch Code: Batch 247548: Best Before Jul-22  Batch 247549: Best Before Jul-22  Batch 256666: Best Before March-23  Country Of Origin: United Kingdom Message: P&G UK Limited is recalling the above batches of Seven Seas Omega-3 & Immunity 30 Day Duo Pack due to the presence of 2-chloroethanol, which is a recognised reaction product of ethylene oxide. Ethylene oxide is a pesticide that is not permitted for use in foods sold in the EU, but is approved for use by other countries outside the EU. Although the consumption of the contaminated product does not pose an acute risk to health, there is an increased risk if there is continued consumption of contaminated food over a long period of time. Therefore, exposure to this substance needs to be minimised. Point-of-sale recall notices will be displayed in stores supplied with the implicated batches.
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

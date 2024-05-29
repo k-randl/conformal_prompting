@@ -1,0 +1,88 @@
+[2014 - http://www.inspection.gc.ca/about-the-cfia/newsroom/food-recall-warnings/complete-listing/2014-11-12-r9420/eng/1416243309352/1416243327329]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+Notice This archive of previously issued food recalls and allergy alerts is provided for reference and research purposes. Users should note that the products listed in the archive have been subject to removal from the marketplace or appropriate corrective action. Food recalls or allergy alerts are not an indication of the food safety status of products produced at a later date. Notification - PC brand yogurt products recalled due to spoilage Recall / advisory date: November 12, 2014 Reason for recall / advisory: Microbiological - Non harmful (Quality/Spoilage) Hazard classification: Class 3 Company / Firm: Loblaw Companies Limited Distribution: National Extent of the distribution: Retail Reference number: 9420 Contents Affected products More information Media enquiries Affected products Brand Name Common Name Size Code(s) on Product UPC PC Probiotic Greek Yogurt - Blueberry/Raspberry 8 x 100 g 2014 OC 30 Lot 1206 0 60383 10897 7 PC Probiotic Greek Yogurt - Black Cherry/Strawberry 8 x 100 g 2014 OC 30 Lot 1206 0 60383 10898 4 PC 0% Greek Yogurt - Honey/Blueberry 8 x 100 g 2014 OC 30 Lot 1206 0 60383 10421 4 PC 0% Greek Yogurt - Honey 908 g 2014 OC 30 LOT:1206 0 60383 06321 4 PC 0% Greek Yogurt - Honey 500 g 2014 OC 30 Lot 1206 0 60383 89894 6 More information For more information, consumers and industry can contact the CFIA by filling out the online feedback form. Media enquiries CFIA Media Relations 613-773-6600 Date modified: 2014-11-17
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

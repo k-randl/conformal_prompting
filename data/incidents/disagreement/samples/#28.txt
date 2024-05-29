@@ -1,0 +1,111 @@
+[2017 - http://wayback.archive-it.org/7993/20171114010932/https:/www.fda.gov/Safety/Recalls/ucm577865.htm]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+King Soopers said today it has recalled its chicken salad sandwiches that are sold in King Soopers and City Market stores, located in Colorado, Utah, New Mexico and Wyoming. The product may be contaminated with Listeria monocytogenes.
+Listeria monocytogenes is an organism which can cause serious and sometimes fatal infections in young children, frail or elderly people, and others with weakened immune systems. Although healthy individuals may suffer only short-term symptoms such as high fever, severe headache, stiffness, nausea, abdominal pain and diarrhea, Listeria infection can cause miscarriages and stillbirths among pregnant women.
+No confirmed reports of illness or injury have been reported to date.  Anyone concerned about an illness should contact a healthcare provider.
+The chicken salad sandwich is the prepackaged 6.8 oz item sold in the deli department at King Soopers.  King Soopers has removed this item from store shelves and initiated its customer recall notification system that alerts customers who may have purchased recalled products through register receipt tape messages and phone calls.  
+King Soopers was notified on September 21st  by the manufacturer, Journey Cuisine, that the recalled product may be contaminated with Listeria monocytogenes.  The company has ceased production and distribution of the product pending an investigation.
+Customers who have purchased the product described above should not consume it and should return it to a store for a full refund or replacement.
+Customers who have questions may contact Kroger at 1-800-KROGERS, Monday through Friday 8:00 a.m. ET to 12:00 a.m. ET, and Saturday through Sunday 8:00 a.m. ET to 9:00 p.m. ET.
+King Soopers operates 152 stores, 148 pharmacies and 80 fuel centers in Colorado. For more than 65 years, King Soopers has emphasized a customer-first approach to providing quality products, value pricing, outstanding service and an exceptional shopping experience.  We are dedicated to making a difference in the communities we serve by supporting hunger relief, education, health and wellness, military families and diversity programs. For more information about King Soopers, download the free King Soopers mobile app or connect on King Soopers.com, Facebook, Twitter or Instagram.
+<thead> 
+ <tr> 
+  <th scope="col">Product</th> 
+  <th scope="col"><strong>UPC</strong></th> 
+  <th scope="col"><strong>Code</strong></th> 
+  <th scope="col"><strong>Size</strong></th> 
+ </tr> 
+</thead> 
+<tbody> 
+ <tr> 
+  <td>DELI CHICKEN SALAD SANDWICH (Prepackaged)</td> 
+  <td>663209-02050</td> 
+  <td>Sell By dates:<br>09/20/17<br>-THRU-<br>09/28/2017</td> 
+  <td>6.8oz</td> 
+ </tr> 
+</tbody>
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

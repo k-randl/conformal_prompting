@@ -1,0 +1,88 @@
+[2021 - http://www.cfs.gov.hk/english/whatsnew/whatsnew_fa/2021_416.html]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+Undeclared allergen (sulphur dioxide and sorbic acid) found in prepackaged date sample Issue Date 5.1.2021 Source of Information Centre for Food Safety (CFS) Food Product Prepackaged date Product Name and Description Product name: (Not available in English) Place of origin: China Distributor: Premier Food Ltd Net weight: 450 grams per pack Best-before date: December 31, 2021 Reason For Issuing Alert Subsequent to announcing earlier that a prepackaged date sample taken from an online shop was detected with excessive preservative and in breach of the food labelling regulation, the CFS took another date sample from the same distributor from a shop in a shopping centre in West Kowloon for testing during follow-up investigations. The test result showed that the sample contained sorbic acid at a level of 69 parts per million (ppm) and sulphur dioxide at a level of 41 ppm. Although the levels are within the legal limits, the functional class and names of the two additives were not declared on the food label of the sample. Sulphur dioxide is a commonly used preservative in a variety of foods including dried vegetables, dried fruits, pickled vegetables and salted fish products. Sulphur dioxide is water soluble, and most of it can be removed through washing and cooking. However, susceptible individuals who are allergic to this preservative may experience breathing difficulties, headaches and nausea after consumption. Action Taken by the Centre for Food Safety The CFS has informed the vendor concerned of the irregularity. The distributor concerned has initiated a recall on the affected batch of the product according to the CFS's instructions. The CFS will alert the trade, continue to follow up on the incident and take appropriate action. Investigation is ongoing. Advice to the Trade Stop using or selling the affected batch of the product immediately if they possess it. Advice to Consumers Should not consume the affected batch of the product. Further Information The CFS press release Members of the public may call its hotline at 2291 6216 during office hours for enquiries about the recall. Centre for Food Safety Food and Environmental Hygiene Department 2021-1-5 Back
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

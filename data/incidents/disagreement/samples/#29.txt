@@ -1,0 +1,132 @@
+[2016 - https://www.fda.gov/Safety/Recalls/ucm502537.htm]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+Phoenix Arizona, Papa John’s Salad and Produce, Inc. is voluntarily recalling Oriental Salad with Sesame Ginger Dressing due to possible Listeria monocytogenes contamination. This voluntary action is being undertaken in cooperation with the US Food and Drug Administration because the recalled products contain sunflower kernels that are part of the recent SunOpta sunflower kernel recall expansion.
+SunOpta’s recall can be found at: http://www.fda.gov/Safety/Recalls/ucm502184.htm
+Listeria monocytogenes is an organism that can cause serious and sometimes fatal infections in young children, frail or elderly people, and others with weakened immune systems. Although healthy individuals may suffer only short-term symptoms such as high fever, severe headache, stiffness, nausea, abdominal pain, and diarrhea, Listeria infection can cause miscarriages and stillbirths among pregnant women.
+No illnesses as of 5/21/16 have been reported to Papa John’s Salads and Produce for the products involved in this voluntary recall.
+Products covered by this voluntary recall were distributed in the following states AZ, CA, ID, MT, ND, NM, OR, WY. Specific retail stores affected include Albertson’s, Safeway, Bashas’, and Food 4 Less.
+Papa John’s Salads and Produce, Inc. is working with our customers to remove the products from store shelves and distribution. Consumers who have purchased these items are advised to discard them or return them to the store where originally purchased. The sell by date is located on the left side for the 10 oz. package and top side for the 13 oz. package.
+Media and consumers with questions regarding the recall can contact Brandy Rousselle, Consumer Relation’s Manager, at (480) 894-6885 ext. 125. The line is monitored between 8:00 AM and 5:00 PM, 7 days a week.
+We have already contacted our customers regarding specific lot codes and shipments that were impacted by this recall.
+<thead> 
+ <tr> 
+  <th scope="col">Brand</th> 
+  <th scope="col">Container Size</th> 
+  <th scope="col">UPC</th> 
+  <th scope="col">Sell by Date</th> 
+ </tr> 
+</thead> 
+<tbody> 
+ <tr> 
+  <td colspan="3"><strong>Albertsons/Safeway</strong></td> 
+ </tr> 
+ <tr> 
+  <td>Oriental Salad with Sesame Ginger Dressing</td> 
+  <td>10 oz.</td> 
+  <td>78279602691</td> 
+  <td>5/18, 5/ 19, 5/20, 5/21, 5/22, 5/23, 5/24, 5/25</td> 
+ </tr> 
+ <tr> 
+  <td colspan="3"><strong>Bashas</strong></td> 
+ </tr> 
+ <tr> 
+  <td>Oriental Salad with Sesame Ginger Dressing</td> 
+  <td>10 oz.</td> 
+  <td>78279602691</td> 
+  <td>5/18, 5/ 19, 5/20, 5/21, 5/22, 5/23, 5/24</td> 
+ </tr> 
+ <tr> 
+  <td colspan="3"><strong>Food 4 Less</strong></td> 
+ </tr> 
+ <tr> 
+  <td>Oriental Salad with Sesame Ginger Dressing</td> 
+  <td>13 oz.</td> 
+  <td>78279602840</td> 
+  <td>5/18, 5/ 19, 5/20, 5/21, 5/22, 5/23, 5/24, 5/25</td> 
+ </tr> 
+</tbody>
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

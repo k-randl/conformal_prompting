@@ -1,0 +1,88 @@
+[2019 - http://www.inspection.gc.ca/about-the-cfia/newsroom/food-recall-warnings/complete-listing/2019-09-20-r13227/eng/1569336282422/1569336288144]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+Notification - Parador Plus brand Bouillon Chicken Concentrate recalled due to yeast and mould Recall / advisory date: September 20, 2019 Reason for recall / advisory: Microbiological - Non harmful (Quality/Spoilage) Hazard classification: Class 3 Company / Firm: Les Aliments Parador Foods Inc. Distribution: Quebec Extent of the distribution: Hotel/Restaurant/Institutional Reference number: 13227 Contents Affected products Public enquiries and media Affected products Brand Name Common Name Size UPC Code(s) on Product Parador Plus Bouillon Chicken Concentrate 2 L 7 72288 00075 0 08824 Public enquiries and media Public enquiries Toll-free: 1-800-442-2342 (Canada and U.S.) Telephone: 1-613-773-2342 (local or international) Email: cfia.enquiries-demandederenseignements.acia@canada.ca Media relations Telephone: 613-773-6600 Email: cfia.media.acia@canada.ca Report a problem on this page Date modified: 2019-09-24
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

@@ -1,0 +1,93 @@
+[2017 - https://www.food.gov.uk/news-updates/news/2017/16777/west-london-sandwiches-recalls-sandwiches-produced-in-unhygienic-conditions]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+West London Sandwiches is recalling various sandwiches because the sandwiches have been produced in unhygienic conditions.
+Brand Product name 'Use by' date West London Sandwiches  Tuna Sweetcorn Sandwich Up to and including 06/12/2017 West London Sandwiches  Cheese Salad Sandwich Up to and including 06/12/2017 West London Sandwiches  Cheese and Onion Sandwich  Up to and including 06/12/2017 West London Sandwiches  Chicken Tikka Sandwich  Up to and including 06/12/2017 West London Sandwiches  Chicken Sweetcorn Sandwich  Up to and including 06/12/2017 West London Sandwiches  Egg Bacon Sandwich  Up to and including 06/12/2017 West London Sandwiches  Egg and Cress Sandwich Up to and including 06/12/2017 West London Sandwiches  Chicken Bacon Sandwich  Up to and including 06/12/2017 West London Sandwiches  Ham Cheese Sandwich Up to and including 06/12/2017 West London Sandwiches  Cheese Ploughmans Sandwich  Up to and including 06/12/2017 West London Sandwiches  BLT Sandwich  Up to and including 06/12/2017 West London Sandwiches  Piri Piri Chicken Sandwich Up to and including 06/12/2017 West London Sandwiches  Chicken, Bacon, Mayo Sandwich Up to and including 06/12/2017 No other West London Sandwiches products are known to be affected.
+The products were produced in unhygienic conditions and may be unfit for human consumption.
+If you have bought any of the above products do not eat it. Instead, return it to the store from where it was bought for a full refund.
+West London Sandwiches is recalling the above products. The business has been advised to display point of sale notices at retail stores that are selling these products. 
+If there is a problem with a food product that means it should not be sold, then it might be 'withdrawn' (taken off the shelves) or 'recalled' (when customers are asked to return the product). The FSA issues Product Withdrawal Information Notices and Product Recall Information Notices to let consumers and local authorities know about problems associated with food. In some cases, a 'Food Alert for Action' is issued. This provides local authorities with details of specific action to be taken on behalf of consumers. Get food alerts Subscribe to get alerts by email or SMS text Ref: FSA-PRIN 41-2017
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

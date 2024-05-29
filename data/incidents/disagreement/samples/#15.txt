@@ -1,0 +1,88 @@
+[1999 - https://www.productsafety.gov.au/recall/murrumbidgee-dairy-products-riverina-milk-products]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+PRA No. 1999/4127 Date published 27 Oct 1999 Product description Fresh Low Fat Modified Milk, Fresh Reduced Fat Modified Milk, Fresh Milk, Flavoured Milk Coffee And Chocolate, Funny Bones Banana Flavoured Milk - Use By Date 31 October 1999; And Fresh Vanilla Custard - Use By Date 17 November 1999. Distribution NSW/ACT Identifying features N/A What are the defects? May Contain Listeria Bacteria. This Bacteria Can Cause Serious Illness In Pregnant Women, The Elderly, Young Babies And People With Low Immune Systems. What are the hazards? Contamination What should consumers do? Immediately Dispose Of The Products. Customers Should Advise The Toll Free Customer Relations Number 1800 816 773 Of The Batch And Time Code On These Products. Supplier Murrumbidgee Dairy Products Where the product was sold Australian Capital Territory New South Wales Coordinating agency Food Standards Australia New Zealand is the coordinating agency for this recall. Product category Eggs and dairy × Close
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

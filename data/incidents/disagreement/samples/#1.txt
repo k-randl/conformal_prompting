@@ -1,0 +1,89 @@
+[2022 - https://www.food.gov.uk/news-alerts/alert/fsa-aa-08-2022]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+KP Snacks is recalling Popchips Veg Vibes Sea Salt & Balsamic Vinegar because they contain milk which is not mentioned in the ingredients list. As a result of a packaging error, some packs contain Sour Cream & Onion flavoured chips which contain milk. This means the product is a possible health risk for anyone with an allergy or intolerance to milk or milk constituents. Product details Batch code YP1D 1344 00:43 to 02:30 Best before 09 07 2022 Allergens Milk Risk statement Allergen(s): Milk This product contains milk making them a possible health risk for anyone with an allergy or intolerance to milk or milk constituents. Action taken by the company KP Snacks is recalling the above product from customers and has been advised to contact the relevant allergy support organisations, which will tell their members about the recall. The company has also issued a point-of-sale notice to its customers. These notices explain to customers why the product is being recalled and tell them what to do if they have bought the product. Customer Notice: Popchips Veg Vibes Sea Salt & Balsamic Vinegar Our advice to consumers If you have bought the above product and have an allergy or intolerance to milk or milk constituents do not eat it. Instead return it to the store from where it was bought for a full refund. Consumers can also contact KP Snacks on 08000196193 or via the web form at https://www.kpsnacks.com/contact/, by social media at https://www.facebook.com/popchipsuk; https://www.instagram.com/popchipsuk/; https://twitter.com/popchipsUK. About allergy alerts Sometimes there will be a problem with a food product that means it should not be sold. Then it might be 'withdrawn' (taken off the shelves) or 'recalled' (when customers are asked to return the product). Sometimes foods have to be withdrawn or recalled if there is a risk to consumers because the allergy labelling is missing or incorrect or if there is any other food allergy risk. When there is a food allergy risk, the FSA will issue an Allergy Alert. Ref: FSA-AA-08-2022 Subscribe to news and alerts
+KP Snacks is recalling Popchips Veg Vibes Sea Salt & Balsamic Vinegar because they contain milk which is not mentioned in the ingredients list. As a result of a packaging error, some packs contain Sour Cream & Onion flavoured chips which contain milk. This means the product is a possible health risk for anyone with an allergy or intolerance to milk or milk constituents. Product details Batch code YP1D 1344 00:43 to 02:30 Best before 09 07 2022 Allergens Milk Risk statement Allergen(s): Milk This product contains milk making them a possible health risk for anyone with an allergy or intolerance to milk or milk constituents. Action taken by the company KP Snacks is recalling the above product from customers and has been advised to contact the relevant allergy support organisations, which will tell their members about the recall. The company has also issued a point-of-sale notice to its customers. These notices explain to customers why the product is being recalled and tell them what to do if they have bought the product. Customer Notice: Popchips Veg Vibes Sea Salt & Balsamic Vinegar Our advice to consumers If you have bought the above product and have an allergy or intolerance to milk or milk constituents do not eat it. Instead return it to the store from where it was bought for a full refund. Consumers can also contact KP Snacks on 08000196193 or via the web form at https://www.kpsnacks.com/contact/, by social media at https://www.facebook.com/popchipsuk; https://www.instagram.com/popchipsuk/; https://twitter.com/popchipsUK. About allergy alerts Sometimes there will be a problem with a food product that means it should not be sold. Then it might be 'withdrawn' (taken off the shelves) or 'recalled' (when customers are asked to return the product). Sometimes foods have to be withdrawn or recalled if there is a risk to consumers because the allergy labelling is missing or incorrect or if there is any other food allergy risk. When there is a food allergy risk, the FSA will issue an Allergy Alert. Ref: FSA-AA-08-2022 Subscribe to news and alerts
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

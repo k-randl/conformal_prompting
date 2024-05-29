@@ -1,0 +1,100 @@
+[2018 - https://www.fsis.usda.gov/wps/portal/fsis/topics/recalls-and-public-health-alerts/recall-case-archive/archive/2018/recall-066-2018-release]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+WASHINGTON, Aug. 3, 2018 – Star Natural Meats, LLC, an Astoria, N.Y. establishment, is recalling approximately 20,000 pounds of raw, non-intact pork sausage products due to misbranding and undeclared allergens, the U.S. Department of Agriculture’s Food Safety and Inspection Service (FSIS) announced today. The products contain milk and soy, known allergens, which are not declared on the product label. In addition, the products contain restricted ingredients, specifically sodium nitrite and sodium nitrate, which are not declared on the finished product label.
+The pork sausage items were produced on various dates from Feb. 23, 2017 to Aug. 3, 2018. The following products are subject to recall: [View Label (PDF only)]
+
+• Individual packages of various weights of “LOUKANIKO GREEK BRAND – MADE IN THE U.S.A.” pork sausage.
+The products subject to recall bear establishment number “EST. 48109” inside the USDA mark of inspection and are not labeled with a lot code or expiration date. These items were shipped to retail locations in Astoria, N.Y.
+
+The problem was discovered on Aug. 3, 2018 by FSIS Inspection Program Personnel while conducting routine label verification tasks.
+There have been no confirmed reports of adverse reactions due to consumption of these products. Anyone concerned about an injury or illness should contact a healthcare provider. 
+
+FSIS is concerned that some product may be in consumers’ refrigerators or freezers. Consumers who have purchased these products are urged not to consume them. These products should be thrown away or returned to the place of purchase.
+FSIS routinely conducts recall effectiveness checks to verify that recalling firms are notifying their customers of the recall and that actions are being taken to make certain that the product is no longer available to consumers. When available, the retail distribution list(s) will be posted on the FSIS website at www.fsis.usda.gov/recalls.
+Consumers and members of the media with questions about the recall can contact Lena Psorakis, Star Natural Meats supervisor, at (510) 755-7545.
+Consumers with food safety questions can "Ask Karen," the FSIS virtual representative available 24 hours a day at AskKaren.gov or via smartphone at m.askkaren.gov. The toll-free USDA Meat and Poultry Hotline 1-888-MPHotline (1-888-674-6854) is available in English and Spanish and can be reached from 10 a.m. to 6 p.m. (Eastern Time) Monday through Friday. Recorded food safety messages are available 24 hours a day. The online Electronic Consumer Complaint Monitoring System can be accessed 24 hours a day at: http://www.fsis.usda.gov/reportproblem.
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...

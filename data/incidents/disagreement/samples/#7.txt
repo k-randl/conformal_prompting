@@ -1,0 +1,88 @@
+[2012 - http://www.foodstandards.gov.au/industry/foodrecalls/recalls/Pages/fosterclarksdairydes5635.aspx]
+
+####################################################################################################
+Text:
+####################################################################################################
+
+Page Content Cerebos (Australia) Ltd has recalled a range of Foster Clark’s dairy desserts from supermarkets nationally due to the possible presence of small pieces of plastic, posing a potential choking hazard, especially to young children. Date notified to FSANZ 22 September 2012 Food type Dairy desserts Product name Foster Clark’s Snak Pack – Chocolate (2 x 140gm) (Best before 21 AUG 2013, 22 AUG 2013, 23 AUG 2013 and 06 SEP 2013) Foster Clark’s Snak Pack – Chocolate (4 x 140gm) (Best before 23 AUG 2013, 24 AUG 2013, 06 SEP 2013 and 07 SEP 2013) Foster Clark’s Snak Pack – Strawberry (2 x 140gm) (Best Before 03 SEP 2013) Foster Clark’s Snak Pack – Banana (4 x 140gm) (Best before 27 AUG 2013 and 28 AUG 2013) Foster Clark’s Custard Cups – Vanilla (4 x 140gm) (Best Before 29 AUG 2013 and 30 AUG 2013) Package description & size Single serve plastic tubs with cardboard outer in a variety of 2 and 4 packs. Date marking Various – see above. Country of origin Australia Reason for recall The products may contain small pieces of plastic, posing a possible choking hazard, especially to young children. Distribution Nationally through Woolworths/Safeway, Coles, Bi-Lo, Franklins, IGA, CCC and Pick N Pay (Qld) Consumer advice Do not consume. Retain packaging and contact Customer Service Centre (see below) to arrange reimbursement. Contact Customer Service Centre on 1800 656 115 or consumer@cerebos.com.au Related links:
+
+####################################################################################################
+Labelling instructions:
+####################################################################################################
+
+	1.	Please assign labels to the columns "productCategory" and
+    		"hazardCategory" describing the contents of the text.
+    		Values for the field "productCategory" should be chosen from the following:
+    
+		 - prepared dishes and snacks
+		 - meat and meat products (other than poultry)
+		 - non-alcoholic beverages
+		 - cocoa and cocoa preparations, coffee and tea
+		 - confectionery
+		 - cereals and bakery products
+		 - soups, broths, sauces and condiments
+		 - fish and fish products
+		 - herbs and spices
+		 - poultry meat and poultry meat products
+		 - crustaceans and products thereof
+		 - honey and royal jelly
+		 - other food product / mixed
+		 - fats and oils
+		 - dietetic foods, food supplements, fortified foods
+		 - bivalve molluscs and products therefor
+		 - fruits and vegetables
+		 - ices and desserts
+		 - pet feed
+		 - milk and milk products
+		 - nuts, nut products and seeds
+		 - sugars and syrups
+		 - food contact materials
+		 - alcoholic beverages
+		 - soups
+		 - food additives and flavourings
+		 - eggs and egg products
+		 - feed materials
+		 - cephalopods and products thereof
+		 - feed additives
+
+    		Values for the field "hazardCategory" should be chosen from the following:
+    
+		 - biological
+		 - allergens
+		 - fraud
+		 - chemical
+		 - foreign bodies
+		 - organoleptic aspects
+		 - food contact materials
+		 - other hazard
+		 - migration
+		 - food additives and flavourings
+		 - packaging defect
+
+    	2.	Please copy and paste the text span(s) from the text that
+    		are most descriptive of the respective assigned label into the columns
+    		"productSpan" and "hazardSpan".Spans should be separated by linefeeds.
+
+####################################################################################################
+productCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+productSpan:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardCategory:
+####################################################################################################
+
+...
+
+####################################################################################################
+hazardSpan:
+####################################################################################################
+
+...
