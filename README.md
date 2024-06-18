@@ -12,7 +12,10 @@ First, install the Python modules specified in [requirements.txt](https://github
 ```
 pip install -r requirements.txt
 ```
-
+Next, download the dataset by running:
+```
+python get_data.py
+```
 Afterwards, you can train and evaluate the baseline models using the following commands:  
 
 ### Classic ML:
