@@ -8,6 +8,13 @@ Finally, we discuss different prompting strategies and present an LLM-in-the-loo
 
 ## Usage
 
+First, install the Python modules specified in [requirements.txt](https://github.com/k-randl/conformal_prompting/tree/main/requirements.txt). This can be done by executing the following command in the cloned directory:
+```
+pip install -r requirements.txt
+```
+
+Afterwards, you can train and evaluate the baseline models using the following commands:  
+
 ### Classic ML:
 ```
 TrainerClassic.py [-h] [-i I [I ...]] [-nf NF]
