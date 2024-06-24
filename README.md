@@ -1,5 +1,5 @@
 # conformal_prompting
-Implementation of the paper "CICLe: Conformal In-Context Learning for Largescale Multi-Class Food Risk Classification"
+Implementation of the paper "[CICLe: Conformal In-Context Learning for Largescale Multi-Class Food Risk Classification](https://arxiv.org/abs/2403.11904)"
 
 **Abstract:** *Contaminated or adulterated food poses a substantial risk to human health. Given sets of labeled web texts for training, Machine Learning and Natural Language Processing can be applied to automatically detect such risks given the necessary labeled training data.
 We publish a dataset of 7,546 short texts describing public food recall announcements. Each text is manually labeled, on two granularity levels (coarse and fine), for food products and hazards that the recall corresponds to. 
@@ -86,3 +86,14 @@ TrainerTransformer.py [-h] [-lr LR [LR ...]] [-bs BS] [-e E [E ...]] [-p P [P ..
   --eval_explanations   evaluate attentions against spans
 ```
 
+## Citing
+If you use our work please cite the following article:
+```
+@misc{randl2024cicle,
+      title={CICLe: Conformal In-Context Learning for Largescale Multi-Class Food Risk Classification}, 
+      author={Korbinian Randl and John Pavlopoulos and Aron Henriksson and Tony Lindgren},
+      year={2024},
+      eprint={2403.11904},
+      archivePrefix={arXiv},
+}
+```
