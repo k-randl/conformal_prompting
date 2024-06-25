@@ -20,7 +20,7 @@ from sklearn.base import ClassifierMixin
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Iterable, Tuple, Type, Dict, Any
+from typing import Optional, Iterable, Tuple, Type, List, Dict, Any
 
 ####################################################################################################
 # Models:                                                                                          #
@@ -59,8 +59,8 @@ MODELS = {
 ####################################################################################################
 
 class TrainerClassic(Trainer):
-    def __init__(self, num_labels:int=0, normalize_fcn:T_norm=None) -> None:
-        super().__init__(num_labels=num_labels, normalize_fcn=normalize_fcn)
+    def __init__(self, labels:List[str], normalize_fcn:T_norm=None) -> None:
+        super().__init__(labels=labels, normalize_fcn=normalize_fcn)
         self._embedding = None
 
     def _encode_data(self, data:T_data, filter_by_spans:bool=False) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
@@ -116,21 +116,22 @@ class TrainerClassic(Trainer):
         result = {}
 
         # get data:
-        x, result['labels'], _ = self._encode_data(data)
+        x, y, _ = self._encode_data(data)
+        result['labels'] = self.id2label(y)
 
         if output_probabilities:
             # create probability array:
-            p = np.zeros((len(x), self._num_labels), dtype=float)
+            p = np.zeros((len(x), self.num_labels), dtype=float)
 
             # predict probabilities:
             p[:,self._model.classes_] = self._model.predict_proba(x)
 
             # save most probable class as prediction:
-            result['predictions']   = np.argmax(p, axis=-1)
+            result['predictions']   = self.id2label(np.argmax(p, axis=-1))
             result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, p)
 
         # otherwise directly predict labels:
-        else: result['predictions'] = self._model.predict(x)
+        else: result['predictions'] = self.id2label(self._model.predict(x))
 
         # add spans to list:
         if output_spans: result['spans'] = self._last_spans
@@ -156,7 +157,7 @@ class TrainerClassic(Trainer):
 
         # create evaluator instance:
         trainer =  TrainerClassic(
-            num_labels    = data['num_labels'],
+            labels        = data['labels'],
             normalize_fcn = normalize_fcn
         )
         trainer._model     = data['model']
@@ -175,8 +176,9 @@ class TrainerClassic(Trainer):
         # save model:
         with open(dir + '/model.pickle', 'wb') as file:
             pickle.dump({
+                'type':           type(self),
                 'model':          self._model,
-                'num_labels':     self._num_labels,
+                'labels':         self._labels,
                 'embedding_type': type(self._embedding)
             }, file)
 
@@ -204,8 +206,8 @@ class TrainerClassic(Trainer):
             valid_out = self.predict(data_valid, output_probabilities=False)
 
             # calculate score:
-            y_true = valid_out['labels'].astype(int)
-            y_pred = valid_out['predictions'].astype(int)
+            y_true = valid_out['labels']
+            y_pred = valid_out['predictions']
             score  = f1_score(y_true, y_pred, average='macro')
 
             #save score to history:
@@ -304,7 +306,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
             # create trainer:
             trainer = TrainerClassic(
-                len(label_map),
+                labels=label_map,
                 normalize_fcn=normalize_fcn
             )
 

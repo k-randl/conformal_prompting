@@ -34,22 +34,22 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Optional, Tuple, Iterable, Union, Generator, Dict, Any
+from typing import Optional, Tuple, Iterable, Union, Generator, List, Dict, Any
 
 ####################################################################################################
 # Trainer Class:                                                                                   #
 ####################################################################################################
 
 class TrainerTransformer(Trainer):
-    def __init__(self, num_labels:int, batch_size:int, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None) -> None:
-        super().__init__(normalize_fcn=normalize_fcn, num_labels=num_labels)
+    def __init__(self, labels:List[str], batch_size:int, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None) -> None:
+        super().__init__(labels=labels, normalize_fcn=normalize_fcn)
         self._batch_size = batch_size
         self._loss_fcn   = loss_fcn
 
     def _init_model(self, model:str, **kwargs):
         self._model = AutoModelForSequenceClassification.from_pretrained(
             model,
-            num_labels=self._num_labels,
+            num_labels=self.num_labels,
             **kwargs
         )
         self._tokenizer = AutoTokenizer.from_pretrained(f'{self._model.config.model_type}-base')
@@ -110,12 +110,10 @@ class TrainerTransformer(Trainer):
         else: return None
 
     @staticmethod
-    def load(dir:str, num_labels:int, batch_size:int=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, **kwargs) -> 'TrainerTransformer':
+    def load(dir:str, batch_size:int=None, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, **kwargs) -> 'TrainerTransformer':
         '''Loads a model from disk.
 
             dir:            Path to the directory that contains the model (e.g.: .\models)
-
-            num_labels:     Number of unique labels in the data
 
             batch_size:     Batch size: 16, 32 [Devlin et al.]
 
@@ -124,8 +122,13 @@ class TrainerTransformer(Trainer):
 
             returns:        An instance of `TrainerTransformerTfIdf` with the model.
         '''
+        # load data from file:
+        with open(dir + '/model.pickle', 'rb') as file:
+            data = pickle.load(file)
+
+        # create evaluator instance:
         trainer = TrainerTransformer(
-            num_labels=num_labels,
+            labels=data['labels'],
             batch_size=batch_size,
             normalize_fcn=normalize_fcn,
             loss_fcn=loss_fcn
@@ -144,6 +147,13 @@ class TrainerTransformer(Trainer):
 
         # create folder if necessary:
         os.makedirs(dir, exist_ok=True)
+
+        # save model:
+        with open(dir + '/model.pickle', 'wb') as file:
+            pickle.dump({
+                'type':           type(self),
+                'labels':         self._labels
+            }, file)
 
         # get model and state dict to be saved:
         model = self._model.module if hasattr(self._model, 'module') else self._model
@@ -197,7 +207,7 @@ class TrainerTransformer(Trainer):
                 if not (self._loss_fcn is None):
                     loss = self._loss_fcn(
                         model_out.logits.type(torch.float),
-                        nn.functional.one_hot(labels_tensor, num_classes=self._num_labels).type(torch.float)
+                        nn.functional.one_hot(labels_tensor, num_classes=self.num_labels).type(torch.float)
                     )
                     eval_loss += loss.item()
                     n_steps += 1
@@ -209,8 +219,8 @@ class TrainerTransformer(Trainer):
 
         # create and return output dictionary:
         result = {
-            'labels':np.array(labels),
-            'predictions':np.argmax(logits, axis=-1)
+            'labels':self.id2label(labels),
+            'predictions':self.id2label(np.argmax(logits, axis=-1))
         }
         if output_probabilities:    result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, logits)
         if output_spans:            result['spans'] = spans
@@ -319,8 +329,8 @@ class TrainerTransformer(Trainer):
             print(f"  Loss:      {loss_valid[i]:4.2f}")
 
             if use_f1:
-                y_true = np.array(valid_out['labels'], dtype=int)
-                y_pred = np.array(valid_out['predictions'], dtype=int)
+                y_true = valid_out['labels']
+                y_pred = valid_out['predictions']
                 f1_valid[i] = f1_score(y_true, y_pred, average='macro')
                 print(f"  F1:        {f1_valid[i]:4.2f}")
                 print(f"  Precision: {precision_score(y_true, y_pred, average='macro'):4.2f}")
@@ -400,7 +410,7 @@ class TrainerTransformer(Trainer):
             if self._loss_fcn is not None:
                 loss = self._loss_fcn(
                     model_out.logits.type(torch.float),
-                    nn.functional.one_hot(labels_tensor, num_classes=self._num_labels).type(torch.float)
+                    nn.functional.one_hot(labels_tensor, num_classes=self.num_labels).type(torch.float)
                 )
 
             elif hasattr(model_out, 'loss'):
@@ -498,7 +508,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         if not (predict or eval_explanations):
             # create trainer:
             trainer = TrainerTransformer(
-                num_labels=len(label_map),
+                labels=label_map,
                 batch_size=batch_size,
                 loss_fcn=torch.nn.CrossEntropyLoss(
                     #weight=None,

@@ -1,6 +1,6 @@
 import abc
+import pickle
 import numpy as np
-import torch.nn as nn
 
 from sklearn.base import ClassifierMixin
 
@@ -9,7 +9,7 @@ from sklearn.base import ClassifierMixin
 ####################################################################################################
 
 import numpy.typing as npt
-from typing import Callable, Iterable, Union, Optional, Literal, Dict, Any
+from typing import Callable, Iterable, Union, Optional, Literal, List, Dict, Any
 from resources.data_io import T_data
 
 T_norm = Union[
@@ -55,21 +55,21 @@ def getNormFcn(normalize_fcn:T_norm) -> Callable[[npt.NDArray], npt.NDArray]:
 ####################################################################################################
 
 class Evaluator(metaclass=abc.ABCMeta):
-    def __init__(self, model:ClassifierMixin=None, num_labels:int=0, normalize_fcn:T_norm=None) -> None:
+    def __init__(self, model:ClassifierMixin=None, labels:List[str]=[], normalize_fcn:T_norm=None) -> None:
         self._model         = model
-        self._num_labels    = num_labels
+        self._labels        = labels
         self._normalize_fcn = getNormFcn(normalize_fcn)
 
     @property
     def last_spans(self) -> Union[Iterable[npt.NDArray], npt.NDArray, None]:
-        '''`Iterable[NDArray] | NDArray | None]`: the spans of the last evaluated dataset as a binary mask (per token).'''
+        '''`Iterable[NDArray] | NDArray | None`: the spans of the last evaluated dataset as a binary mask (per token).'''
         if hasattr(self, '_last_spans'):
             return self._last_spans
         else: return None
 
     @property
     def last_texts(self) -> Union[Iterable[str], None]:
-        '''`Iterable[str] | None]`: the texts of the last evaluated dataset.'''
+        '''`Iterable[str] | None`: the texts of the last evaluated dataset.'''
         if hasattr(self, '_last_texts'):
             return self._last_texts
         else: return None
@@ -77,14 +77,14 @@ class Evaluator(metaclass=abc.ABCMeta):
     @property
     def num_labels(self) -> int:
         '''`int`: the number of unique labels predicted by the model.'''
-        self._num_labels
+        return len(self._labels)
 
     @abc.abstractproperty
     def tokenizer(self) -> Callable[[str], Iterable[int]]:
         '''A callable that tokenizes strings to be used by the model.'''
         raise NotImplementedError()
 
-    @abc.abstractstaticmethod
+    @staticmethod
     def load(dir:str, normalize_fcn:T_norm=None, **kwargs) -> 'Evaluator':
         '''Loads a model from disk.
 
@@ -95,7 +95,12 @@ class Evaluator(metaclass=abc.ABCMeta):
             
             returns:       `Evaluator` of the model
         '''
-        raise NotImplementedError()
+        # load data from file:
+        with open(dir + '/model.pickle', 'rb') as file:
+            data = pickle.load(file)
+
+        # call type-specific load function:
+        return data['type'].load(dir=dir, normalize_fcn=normalize_fcn, **kwargs)
 
     @abc.abstractmethod
     def save(self, dir:str, **kwargs) -> None:
@@ -106,22 +111,38 @@ class Evaluator(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def predict(self, data:T_data, output_spans:bool=False, **kwargs) -> Dict[str, Any]:
+    def predict(self, data:T_data, **kwargs) -> Dict[str, Any]:
+        '''Predicts the output of a model.
+
+            data:          Texts to be assessed by the model.
+
+
+            returns:       `Dict[str, Any]` of model outputs.
+        '''
         raise NotImplementedError()
 
+    def id2label(self, id:Union[int,List[int]]) -> Union[str,List[str]]:
+        '''Returns the string label corresponding to an integer model output.
+
+            id:            Integer version of the label.
+
+
+            returns:       String version of the label.
+        '''
+        return self._labels[id]
 
 class EvaluatorMirror(Evaluator):
-    def __init__(self, obj:Optional[Evaluator]=None, num_labels:int=0, normalize_fcn:T_norm=None) -> None:
+    def __init__(self, obj:Optional[Evaluator]=None, labels:List[str]=[], normalize_fcn:T_norm=None) -> None:
         super().__init__(
             model         = None if obj is None else obj._model,
-            num_labels    = num_labels if obj is None else obj._num_labels,
+            labels        = labels if obj is None else obj._labels,
             normalize_fcn = normalize_fcn if obj is None else obj._normalize_fcn
         )
         self._base = obj
 
     @property
     def last_spans(self) -> Union[Iterable[npt.NDArray], npt.NDArray, None]:
-        '''`Iterable[NDArray] | NDArray | None]`: the spans of the last evaluated dataset as a binary mask (per token).'''
+        '''`Iterable[NDArray] | NDArray | None`: the spans of the last evaluated dataset as a binary mask (per token).'''
         if self._base is not None:
             return self._base.last_spans
         else: return None
@@ -162,9 +183,9 @@ class EvaluatorMirror(Evaluator):
             return self._base.save(dir, **kwargs)
         else: raise RuntimeError(f'Instance of `{self.__name__}` has not been instatiated with an object. Save function not available.')
 
-    def predict(self, data:T_data, output_spans:bool=False, **kwargs) -> Dict[str, Any]:
+    def predict(self, data:T_data, **kwargs) -> Dict[str, Any]:
         if self._base is not None:
-            return self._base.predict(data, output_spans=output_spans, **kwargs)
+            return self._base.predict(data, **kwargs)
         else: raise RuntimeError(f'Instance of `{self.__name__}` has not been instantiated with an object. Predict function not available.')
 
 
@@ -187,10 +208,10 @@ class EvaluatorThreshold(EvaluatorMirror):
             prediction_set = []
 
             for y, p in zip(preds[i], probs[i]):
-                prediction_set.append((y, p))
+                prediction_set.append((self.id2label(y), p))
                 if p < (1. - alpha): break
 
-            y_thld.append(np.array(prediction_set, dtype=np.dtype([('i', 'u4'), ('p', 'f4')])))
+            y_thld.append(np.array(prediction_set, dtype=np.dtype([('y', 'object'), ('p', 'f4')])))
 
         results['predictions'] = y_thld
         return results
@@ -214,8 +235,8 @@ class EvaluatorMaxK(EvaluatorMirror):
         for i in range(y_pred.shape[0]):
             y_max_k.append(
                 np.array(
-                    [(preds[i,j], probs[i,j]) for j in range(k)],
-                    dtype=np.dtype([('i', 'u4'), ('p', 'f4')])
+                    [(self.id2label(preds[i,j]), probs[i,j]) for j in range(k)],
+                    dtype=np.dtype([('y', 'object'), ('p', 'f4')])
                 )
             )
 
@@ -269,16 +290,16 @@ class EvaluatorConformalAPS(EvaluatorConformal):
         y_conf = []
         for i in range(y_pred.shape[0]):
             ps = preds[i, probs[i] <= q]
-            ps = [(y, y_pred[i, y]) for y in ps]
+            ps = [(self.id2label(y), y_pred[i, y]) for y in ps]
 
             if min_k is not None:
                 for y in np.argsort(y_pred[i])[::-1][len(ps):min_k]:
-                    ps.append((y, y_pred[i, y]))
+                    ps.append((self.id2label(y), y_pred[i, y]))
 
             ps.sort(key=lambda e: e[1], reverse=True)
 
             y_conf.append(
-                np.array(ps, dtype=np.dtype([('i', 'u4'), ('p', 'f4')]))
+                np.array(ps, dtype=np.dtype([('y', 'object'), ('p', 'f4')]))
             )
 
         results['predictions'] = y_conf
@@ -304,16 +325,16 @@ class EvaluatorConformalSimple(EvaluatorConformal):
         y_conf = []
         for i in range(y_pred.shape[0]):
             ps = np.argwhere((1. - y_pred[i]) <= q)[:,0]
-            ps = [(y, y_pred[i, y]) for y in ps]
+            ps = [(self.id2label(y), y_pred[i, y]) for y in ps]
 
             if min_k is not None:
                 for y in np.argsort(y_pred[i])[::-1][len(ps):min_k]:
-                    ps.append((y, y_pred[i, y]))
+                    ps.append((self.id2label(y), y_pred[i, y]))
 
             ps.sort(key=lambda e: e[1], reverse=True)
 
             y_conf.append(
-                np.array(ps, dtype=np.dtype([('i', 'u4'), ('p', 'f4')]))
+                np.array(ps, dtype=np.dtype([('y', 'object'), ('p', 'f4')]))
             )
 
         results['predictions'] = y_conf

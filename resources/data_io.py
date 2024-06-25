@@ -25,8 +25,8 @@ class ClassificationDataset(Dataset):
     def __init__(self,
             data:pd.DataFrame,
             text_column:str,
-            label_column:str,
             tokenizer:PreTrainedTokenizerBase,
+            label_column:Optional[str]=None,
             label2int:Optional[Callable[[str],int]]=None,
             add_spans:bool=False,
             add_texts:bool=False,
@@ -41,7 +41,10 @@ class ClassificationDataset(Dataset):
         self.data_size = 0
 
         # extract labels and texts:
-        for text, label, spans in zip(data[text_column].values, data[label_column].values, data[label_column.split('-')[0] + '-' + text_column].values):
+        for index, text in enumerate(data[text_column].values):
+            label = 0 if label_column is None else data.iloc[index,label_column]
+            spans = SpanCollection([]) if label_column is None else data.iloc[index,label_column.split('-')[0] + '-' + text_column]
+
             separators = [0, len(text)]
 
             if not truncate:

@@ -331,7 +331,7 @@ class SimpleTokenizer:
         tokenizer = SimpleTokenizer(**kwargs)
 
         # load vocab from file:
-        with open(dir + '/vocab.pickle', 'r', encoding='utf-8') as file:
+        with open(dir + '/vocab.txt', 'r', encoding='utf-8') as file:
             tokenizer._vocab = file.read().split('\n')
             tokenizer._train = False
 
@@ -342,7 +342,7 @@ class SimpleTokenizer:
         os.makedirs(dir, exist_ok=True)
 
         # save vocabulary:
-        with open(dir + '/vocab.pickle', 'w', encoding='utf-8') as file:
+        with open(dir + '/vocab.txt', 'w', encoding='utf-8') as file:
             file.write('\n'.join(self._vocab))
 
 
@@ -409,7 +409,7 @@ class WordTokenizer:
 
         offset_mapping = np.array([(i,j) for i,j in self._tokenizer.span_tokenize(text)], dtype=int)
 
-        result =  {'input_ids': np.array([self._convert_token_to_id(text[i:j]) for i,j in offset_mapping], dtype=int)}
+        result = {'input_ids': np.array([self._convert_token_to_id(text[i:j]) for i,j in offset_mapping], dtype=int)}
 
         if return_offsets_mapping:
             result['offset_mapping'] = offset_mapping
@@ -435,7 +435,7 @@ class WordTokenizer:
         tokenizer = WordTokenizer(**kwargs)
 
         # load vocab from file:
-        with open(dir + '/vocab.pickle', 'r', encoding='utf-8') as file:
+        with open(dir + '/vocab.txt', 'r', encoding='utf-8') as file:
             tokenizer._vocab = file.read().split('\n')
             tokenizer._train = False
 
@@ -446,5 +446,5 @@ class WordTokenizer:
         os.makedirs(dir, exist_ok=True)
 
         # save vocabulary:
-        with open(dir + '/vocab.pickle', 'w', encoding='utf-8') as file:
+        with open(dir + '/vocab.txt', 'w', encoding='utf-8') as file:
             file.write('\n'.join(self._vocab))
