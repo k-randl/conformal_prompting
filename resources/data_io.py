@@ -42,8 +42,8 @@ class ClassificationDataset(Dataset):
 
         # extract labels and texts:
         for index, text in enumerate(data[text_column].values):
-            label = 0 if label_column is None else data.iloc[index,label_column]
-            spans = SpanCollection([]) if label_column is None else data.iloc[index,label_column.split('-')[0] + '-' + text_column]
+            label = 0 if label_column is None else data[label_column].values[index]
+            spans = SpanCollection([]) if label_column is None else data[label_column.split('-')[0] + '-' + text_column].values[index]
 
             separators = [0, len(text)]
 
@@ -133,11 +133,11 @@ def load_data(
 
     # convert to dataset class:
     data_train = ClassificationDataset(
-        data['train'], text_column, label_column, tokenizer, label2int=label2int, **kwargs)
+        data['train'], text_column, tokenizer, label_column, label2int=label2int, **kwargs)
     data_valid = ClassificationDataset(
-        data['valid'], text_column, label_column, tokenizer, label2int=label2int, add_spans=add_spans, add_texts=add_texts, **kwargs)
+        data['valid'], text_column, tokenizer, label_column, label2int=label2int, add_spans=add_spans, add_texts=add_texts, **kwargs)
     data_test = ClassificationDataset(
-        data['test'], text_column, label_column, tokenizer, label2int=label2int, add_spans=add_spans, add_texts=add_texts, **kwargs)
+        data['test'], text_column, tokenizer, label_column, label2int=label2int, add_spans=add_spans, add_texts=add_texts, **kwargs)
 
     # extract labels:
     keys_train = tuple([key for key in data_train[0]])

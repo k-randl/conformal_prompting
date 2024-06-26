@@ -41,10 +41,12 @@ from typing import Optional, Tuple, Iterable, Union, Generator, List, Dict, Any
 ####################################################################################################
 
 class TrainerTransformer(Trainer):
-    def __init__(self, labels:List[str], batch_size:int, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None) -> None:
+    def __init__(self, model:str, labels:List[str], batch_size:int, normalize_fcn:T_norm=None, loss_fcn:Optional[nn.Module]=None, **kwargs) -> None:
         super().__init__(labels=labels, normalize_fcn=normalize_fcn)
         self._batch_size = batch_size
         self._loss_fcn   = loss_fcn
+        self._tokenizer  = AutoTokenizer.from_pretrained(model)
+        self._model      = model
 
     def _init_model(self, model:str, **kwargs):
         self._model = AutoModelForSequenceClassification.from_pretrained(
@@ -52,8 +54,6 @@ class TrainerTransformer(Trainer):
             num_labels=self.num_labels,
             **kwargs
         )
-        self._tokenizer = AutoTokenizer.from_pretrained(f'{self._model.config.model_type}-base')
-
         self._model = nn.DataParallel(self._model)
         self._model.to(DEVICE)
         print('Running on', DEVICE)
@@ -128,12 +128,13 @@ class TrainerTransformer(Trainer):
 
         # create evaluator instance:
         trainer = TrainerTransformer(
+            model=dir,
             labels=data['labels'],
             batch_size=batch_size,
             normalize_fcn=normalize_fcn,
-            loss_fcn=loss_fcn
+            loss_fcn=loss_fcn,
+            **kwargs
         )
-        trainer._init_model(dir, **kwargs)
 
         return trainer
 
@@ -148,12 +149,15 @@ class TrainerTransformer(Trainer):
         # create folder if necessary:
         os.makedirs(dir, exist_ok=True)
 
-        # save model:
+        # save metadata:
         with open(dir + '/model.pickle', 'wb') as file:
             pickle.dump({
                 'type':           type(self),
                 'labels':         self._labels
             }, file)
+
+        # save tokenizer:
+        self._tokenizer.save_pretrained(dir)
 
         # get model and state dict to be saved:
         model = self._model.module if hasattr(self._model, 'module') else self._model
@@ -222,14 +226,20 @@ class TrainerTransformer(Trainer):
             'labels':self.id2label(labels),
             'predictions':self.id2label(np.argmax(logits, axis=-1))
         }
-        if output_probabilities:    result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, logits)
+        if output_probabilities:    result['probabilities'] = np.array(
+                                        np.apply_along_axis(self._normalize_fcn, 1, logits),
+                                        dtype=np.dtype([(label, 'f4') for label in self._labels])
+                                    )
         if output_spans:            result['spans'] = spans
         if output_attentions:       result['attentions'] = attentions
         if output_hidden_states:    result['hidden_states'] = hidden_states
         if n_steps > 0:             result['loss'] = eval_loss/n_steps
         return result
 
-    def fit(self, model:str, data_train:T_data, data_valid:T_data, max_grad_norm:float=1., model_dir:str='./model', modelargs: Dict[str, Iterable[Any]]={}) -> None:
+    def fit(self, data_train:T_data, data_valid:T_data, max_grad_norm:float=1., model_dir:str='./model', modelargs: Dict[str, Iterable[Any]]={}) -> None:
+        assert isinstance(self._model, str)
+        pretrained_model_name = self._model
+        
         model_dir = os.path.abspath(model_dir)
         tmp_dir   = os.path.join(model_dir, '.tmp')
 
@@ -239,7 +249,7 @@ class TrainerTransformer(Trainer):
         self._train_history = []
         for kwargs in ParameterGrid(modelargs):
             # create new model: 
-            self._init_model(model,
+            self._init_model(pretrained_model_name,
                 output_attentions=False,
                 output_hidden_states=False
             )
@@ -508,6 +518,7 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
         if not (predict or eval_explanations):
             # create trainer:
             trainer = TrainerTransformer(
+                model=model_name,
                 labels=label_map,
                 batch_size=batch_size,
                 loss_fcn=torch.nn.CrossEntropyLoss(
@@ -528,7 +539,6 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
             # train model:
             trainer.fit(
-                model=model_name,
                 data_train=data_train,
                 data_valid=data_valid,
                 model_dir=model_dir,

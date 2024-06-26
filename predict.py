@@ -29,7 +29,7 @@ def predict(model_dir:str, text:Iterable[str], normalize_fcn:T_norm=None) -> Non
     data = ClassificationDataset(data=df, text_column='text', tokenizer=evaluator.tokenizer)
 
     # evaluate model:
-    outputs = evaluator.predict(data=data, output_spans=False)
+    outputs = evaluator.predict(data=data, output_spans=False, output_probabilities=False)
     df['predictions'] = outputs['predictions']
 
     print(df.to_json())

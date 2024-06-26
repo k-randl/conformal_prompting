@@ -59,9 +59,10 @@ MODELS = {
 ####################################################################################################
 
 class TrainerClassic(Trainer):
-    def __init__(self, labels:List[str], normalize_fcn:T_norm=None) -> None:
+    def __init__(self, embedding:Embedding, model:Type[ClassifierMixin], labels:List[str], normalize_fcn:T_norm=None) -> None:
         super().__init__(labels=labels, normalize_fcn=normalize_fcn)
-        self._embedding = None
+        self._embedding = embedding
+        self._model     = model
 
     def _encode_data(self, data:T_data, filter_by_spans:bool=False) -> Tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
         x, y, w = [], [], []
@@ -128,7 +129,10 @@ class TrainerClassic(Trainer):
 
             # save most probable class as prediction:
             result['predictions']   = self.id2label(np.argmax(p, axis=-1))
-            result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, p)
+            result['probabilities'] = np.array(
+                np.apply_along_axis(self._normalize_fcn, 1, p),
+                dtype=np.dtype([(label, 'f4') for label in self._labels])
+            )
 
         # otherwise directly predict labels:
         else: result['predictions'] = self.id2label(self._model.predict(x))
@@ -157,11 +161,11 @@ class TrainerClassic(Trainer):
 
         # create evaluator instance:
         trainer =  TrainerClassic(
+            embedding     = data['embedding_type'].load(dir, **kwargs),
+            model         = data['model'],
             labels        = data['labels'],
             normalize_fcn = normalize_fcn
         )
-        trainer._model     = data['model']
-        trainer._embedding = data['embedding_type'].load(dir, **kwargs)
 
         return trainer
 
@@ -185,12 +189,11 @@ class TrainerClassic(Trainer):
         # save embedding:
         self._embedding.save(dir, **kwargs)
 
-    def fit(self, embedding:Embedding, model:Type[ClassifierMixin], data_train:T_data, data_valid:T_data, modelargs:Dict[str, Iterable[Any]]={}) -> None:
+    def fit(self, data_train:T_data, data_valid:T_data, modelargs:Dict[str, Iterable[Any]]={}) -> None:
+        model = self._model if isinstance(self._model, type) else type(self._model)
+        
         best_score = -1.
         best_model = None
-
-        # create embedding:
-        self._embedding = embedding
 
         # unpack data:
         x, y, w = self._encode_data(data_train)
@@ -306,14 +309,14 @@ def run(model_name:str, text_column:str, label_column:str, dataset_name:str,
 
             # create trainer:
             trainer = TrainerClassic(
+                embedding=embedding,
+                model=model[0],
                 labels=label_map,
                 normalize_fcn=normalize_fcn
             )
 
             # train model:
             trainer.fit(
-                embedding,
-                model[0],
                 data_train,
                 data_valid,
                 modelargs=model[1]

@@ -347,7 +347,6 @@ class EvaluatorConformalSimple(EvaluatorConformal):
 class Trainer(Evaluator, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def fit(self,
-            model:str,
             data_train:T_data,
             data_valid:T_data,
             bias:float=0.5,
