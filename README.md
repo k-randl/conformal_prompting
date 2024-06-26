@@ -86,6 +86,26 @@ TrainerTransformer.py [-h] [-lr LR [LR ...]] [-bs BS] [-e E [E ...]] [-p P [P ..
   --eval_explanations   evaluate attentions against spans
 ```
 
+### Simply predicting texts using any pre-trained model (*Classic or Transformer*):
+```
+predict.py [-h] [-nf NF] model_dir text [text ...]
+```
+
+*Predict one or more texts. Results are printed to std-out as a json-string.*
+
+**Positional arguments:**
+```
+  model_dir             path to the saved model
+  text                  text to be assessed by the model
+```
+
+**Options:**
+```
+  -h, --help            show this help message and exit
+  -nf NF, --normalize_fcn NF
+                        normalization applied on the results after prediction (default: no normalization)
+```
+
 ## Citing
 If you use our work please cite the following article:
 ```
