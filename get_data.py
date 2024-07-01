@@ -24,14 +24,14 @@ for name, value in headers.items():
 data = pd.read_csv(data_path, index_col=0)
 
 # fill nan-values:
-data['product'].fillna('', inplace=True)
-data['product-category'].fillna('', inplace=True)
+data['product']          = data['product'].fillna('')
+data['product-category'] = data['product-category'].fillna('')
 
-data['hazard'].fillna('', inplace=True)
-data['hazard-category'].fillna('', inplace=True)
+data['hazard']           = data['hazard'].fillna('')
+data['hazard-category']  = data['hazard-category'].fillna('')
 
-data['country'].fillna('na', inplace=True)
-data['language'].fillna('na', inplace=True)
+data['country']          = data['country'].fillna('na')
+data['language']         = data['language'].fillna('na')
 
 # parse spans:
 for col in ['product-title', 'product-text', 'hazard-title', 'hazard-text', 'supplier-title', 'supplier-text']: 
