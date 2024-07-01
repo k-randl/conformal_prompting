@@ -15,7 +15,7 @@ DATA_DIR =  f'data/{DATASET}/'
 SPLIT_DIR = f'{DATA_DIR}splits/'
 
 # Download Data:
-data_path, headers = urlretrieve(DATAURL, f'{DATA_DIR}food_recall_incidents.csv')
+data_path, headers = urlretrieve(DATAURL, f'{DATA_DIR}{DATASET}.csv')
 for name, value in headers.items():
     print(name, value)
 
