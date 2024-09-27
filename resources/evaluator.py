@@ -195,7 +195,7 @@ class EvaluatorThreshold(EvaluatorMirror):
 
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
         if data is not None:
-            results = super().predict(data, **kwargs)
+            results = super().predict(data, output_structured=False, **kwargs)
             y_pred = results['probabilities']
 
         else: y_pred = np.apply_along_axis(self._normalize_fcn, -1, y_pred)
@@ -223,7 +223,7 @@ class EvaluatorMaxK(EvaluatorMirror):
 
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
         if data is not None:
-            results = super().predict(data, **kwargs)
+            results = super().predict(data, output_structured=False, **kwargs)
             y_pred = results['probabilities']
 
         else: y_pred = np.apply_along_axis(self._normalize_fcn, -1, y_pred)
@@ -248,7 +248,7 @@ class EvaluatorConformal(EvaluatorMirror, metaclass=abc.ABCMeta):
     def _get_predictions(self, data:Optional[T_data], y_pred:Optional[npt.NDArray], y_true:Optional[npt.NDArray]=None, **kwargs) -> Dict[str, any]:
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
         if data is None: return {'labels':y_true, 'probabilities':np.apply_along_axis(self._normalize_fcn, -1, y_pred)}
-        else:            return super().predict(data, **kwargs)
+        else:            return super().predict(data, output_probabilities=True, output_structured=False, **kwargs)
 
     def quantile(self, alpha:float) -> float:
         n = len(self.cal_scores)
@@ -276,7 +276,7 @@ class EvaluatorConformalAPS(EvaluatorConformal):
         preds = y_pred.argsort(axis=1)[:,::-1]
         probs = np.cumsum(np.take_along_axis(y_pred, preds, axis=1), axis=1)
 
-        self.cal_scores = np.take_along_axis(probs, preds, axis=1)[np.arange(len(y_true), dtype=int), y_true]
+        self.cal_scores = np.take_along_axis(probs, preds, axis=1)[np.apply_along_axis(lambda y: y == self._labels, 1, y_true[:,np.newaxis])]
 
     def predict(self, alpha:float, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, min_k:Optional[int]=None, **kwargs) -> Dict[str, any]: 
         results = self._get_predictions(data, y_pred, **kwargs)
@@ -314,7 +314,7 @@ class EvaluatorConformalSimple(EvaluatorConformal):
         assert not (y_true is None)
         assert len(y_true) == len(y_pred)
 
-        self.cal_scores = 1. - y_pred[np.arange(len(y_true), dtype=int), y_true]
+        self.cal_scores = 1. - y_pred[np.apply_along_axis(lambda y: y == self._labels, 1, y_true[:,np.newaxis])]
 
     def predict(self, alpha:float, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, min_k:Optional[int]=None, **kwargs) -> Dict[str, any]: 
         results = self._get_predictions(data, y_pred, **kwargs)

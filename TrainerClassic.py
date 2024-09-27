@@ -5,6 +5,7 @@ import json
 import pickle
 
 import numpy as np
+from numpy.lib import recfunctions as rfn
 
 from resources.evaluator import Trainer, T_norm
 from resources.data_io import load_data, load_mappings, T_data
@@ -113,7 +114,7 @@ class TrainerClassic(Trainer):
     def embedding(self) -> Embedding:
         return self._embedding
 
-    def predict(self, data:T_data, output_probabilities:bool=True, output_spans:bool=False) -> Dict[str, Any]:
+    def predict(self, data:T_data, output_probabilities:bool=True, output_structured:bool=True, output_spans:bool=False) -> Dict[str, Any]:
         result = {}
 
         # get data:
@@ -129,10 +130,13 @@ class TrainerClassic(Trainer):
 
             # save most probable class as prediction:
             result['predictions']   = self.id2label(np.argmax(p, axis=-1))
-            result['probabilities'] = np.array(
-                np.apply_along_axis(self._normalize_fcn, 1, p),
-                dtype=np.dtype([(label, 'f4') for label in self._labels])
-            )
+            result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, p)
+
+            if output_structured:
+                result['probabilities'] = rfn.unstructured_to_structured(
+                    arr=result['probabilities'],
+                    dtype=np.dtype([(label, 'f4') for label in self._labels])
+                )
 
         # otherwise directly predict labels:
         else: result['predictions'] = self.id2label(self._model.predict(x))

@@ -13,6 +13,7 @@ from torch.optim.lr_scheduler import SequentialLR, ConstantLR, LinearLR
 from transformers import PreTrainedTokenizerBase, AutoTokenizer, AutoModelForSequenceClassification, PreTrainedModel
 
 import numpy as np
+from numpy.lib import recfunctions as rfn
 
 from tqdm import trange
 from tqdm.autonotebook import tqdm
@@ -171,7 +172,7 @@ class TrainerTransformer(Trainer):
         else:
             torch.save(state_dict, f'{dir}/{type(model).__name__}.pt')
 
-    def predict(self, data:T_data, output_probabilities:bool=True, output_spans:bool=False, output_attentions:bool=False, output_hidden_states:bool=False) -> Dict[str, any]:
+    def predict(self, data:T_data, output_probabilities:bool=True, output_structured:bool=True, output_spans:bool=False, output_attentions:bool=False, output_hidden_states:bool=False) -> Dict[str, any]:
         assert not (self._model is None)
         self._model.eval()
 
@@ -226,10 +227,15 @@ class TrainerTransformer(Trainer):
             'labels':self.id2label(labels),
             'predictions':self.id2label(np.argmax(logits, axis=-1))
         }
-        if output_probabilities:    result['probabilities'] = np.array(
-                                        np.apply_along_axis(self._normalize_fcn, 1, logits),
-                                        dtype=np.dtype([(label, 'f4') for label in self._labels])
-                                    )
+        if output_probabilities:    
+            result['probabilities'] = np.apply_along_axis(self._normalize_fcn, 1, logits)
+
+            if output_structured:   
+                result['probabilities'] = rfn.unstructured_to_structured(
+                    arr=result['probabilities'],
+                    dtype=np.dtype([(label, 'f4') for label in self._labels])
+                )
+
         if output_spans:            result['spans'] = spans
         if output_attentions:       result['attentions'] = attentions
         if output_hidden_states:    result['hidden_states'] = hidden_states
