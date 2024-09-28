@@ -251,12 +251,21 @@ class EvaluatorConformal(EvaluatorMirror, metaclass=abc.ABCMeta):
         else:            return super().predict(data, output_probabilities=True, output_structured=False, **kwargs)
 
     def quantile(self, alpha:float) -> float:
-        n = len(self.cal_scores)
-        return np.quantile(
+        # get number of calibration samples:
+        n = self.cal_scores.shape[0]
+
+        # calculate per class quantile:
+        q = np.nanquantile(
             self.cal_scores,
             np.ceil((n+1.)*(1.-alpha))/n,
-            method='higher'
+            method='higher',
+            axis=0
         )
+
+        # set quantile for classes not covered in the calibration set to 1:
+        q[np.isnan(q)] = 1.
+
+        return q
 
     @abc.abstractmethod
     def calibrate(self, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, y_true:Optional[npt.NDArray]=None) -> None: pass
@@ -314,7 +323,10 @@ class EvaluatorConformalSimple(EvaluatorConformal):
         assert not (y_true is None)
         assert len(y_true) == len(y_pred)
 
-        self.cal_scores = 1. - y_pred[np.apply_along_axis(lambda y: y == self._labels, 1, y_true[:,np.newaxis])]
+        # calculate error towards true class:
+        m_true = np.apply_along_axis(lambda y: y == self._labels, 1, y_true[:,np.newaxis])
+        self.cal_scores = np.full(y_pred.shape, np.nan)
+        self.cal_scores[m_true] = 1. - y_pred[m_true]
 
     def predict(self, alpha:float, data:Optional[T_data]=None, y_pred:Optional[npt.NDArray]=None, min_k:Optional[int]=None, **kwargs) -> Dict[str, any]: 
         results = self._get_predictions(data, y_pred, **kwargs)

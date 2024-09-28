@@ -133,7 +133,7 @@ def load_data(
 
     # convert to dataset class:
     data_train = ClassificationDataset(
-        data['train'], text_column, tokenizer, label_column, label2int=label2int, **kwargs)
+        data['train'], text_column, tokenizer, label_column, label2int=label2int, add_texts=add_texts, **kwargs)
     data_valid = ClassificationDataset(
         data['valid'], text_column, tokenizer, label_column, label2int=label2int, add_spans=add_spans, add_texts=add_texts, **kwargs)
     data_test = ClassificationDataset(

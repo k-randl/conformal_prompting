@@ -1,4 +1,6 @@
+import getpass
 import numpy as np
+from tqdm.autonotebook import tqdm
 
 ####################################################################################################
 # Type hints:                                                                                      #
@@ -6,7 +8,7 @@ import numpy as np
 
 import abc
 import numpy.typing as npt
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Callable
 
 ####################################################################################################
 # Naive Models:                                                                                    #
@@ -78,3 +80,104 @@ class DummyModel(NaiveModel):
         p = np.zeros((len(X), self._n), dtype=float)
         p[:, self._output] = 1.
         return p
+
+####################################################################################################
+# LLM Wrapper:                                                                                    #
+####################################################################################################
+
+class LLM:
+    def __init__(self, name:str, mapping:Callable[[str],str]):
+        self._name = name
+        self._mapping = mapping
+
+    @property
+    def model_name(self) -> str:
+        return self._name
+
+    @property
+    def classes_(self) -> Iterable[int]:
+        raise NotImplementedError()
+
+    def predict(self, X:Iterable[str]) -> Iterable[str]:
+        return [self._mapping(x) for x in X]
+
+    def predict_proba(self, X:Iterable) -> npt.NDArray:
+        raise NotImplementedError()
+
+    def fit(self, X:Iterable, y:Iterable, w:Optional[Iterable]=None) -> None:
+        raise NotImplementedError()
+
+class GPT(LLM):
+    def __init__(self, name:str='gpt-3.5-turbo-instruct', temperature:float=0.) -> None:
+        # Login to OpenAI and create a client:
+        from openai import OpenAI
+        self._client = OpenAI(api_key=getpass.getpass('Enter your OpenAI API-key:'))
+
+        # Initialize base class:
+        super().__init__(name,
+            mapping=lambda x: self._client.completions.create(
+                model=name,
+                prompt=x,
+                temperature=temperature
+            ).choices[0].text.strip()
+        )
+
+class Gemma(LLM):
+    def __init__(self, name:str='google/gemma-1.1-7b-it', temperature:Optional[float]=None, top_p:Optional[float]=None) -> None:
+        # Login to huggingface:
+        from huggingface_hub import login
+        login(getpass.getpass('Enter your huggingface API-key:'))
+
+        # Create a pipeline:
+        import torch
+        from transformers import pipeline
+        self._pipeline = pipeline("text-generation",
+            model=name,
+            model_kwargs={"torch_dtype": torch.bfloat16},
+            device_map="auto"
+        )
+
+        # Initialize base class:
+        super().__init__(name,
+            mapping=lambda x: self._pipeline(
+                [{'role':'user', 'content':x}],
+                max_new_tokens=32,
+                do_sample=(top_p is not None) or (temperature is not None),
+                temperature=temperature,
+                top_p=top_p
+            )[0]["generated_text"][-1]["content"]
+        )
+
+class Llama(LLM):
+    def __init__(self, name:str='meta-llama/Meta-Llama-3.1-8B-Instruct', temperature:Optional[float]=None, top_p:Optional[float]=None) -> None:
+        # Login to huggingface:
+        from huggingface_hub import login
+        login(getpass.getpass('Enter your huggingface API-key:'))
+
+        # Create a pipeline:
+        import torch
+        from transformers import pipeline
+        self._pipeline = pipeline("text-generation",
+            model=name,
+            model_kwargs={"torch_dtype": torch.bfloat16},
+            device_map="auto"
+        )
+
+        # Get special tokens:
+        bos_token_id = self._pipeline.tokenizer.convert_tokens_to_ids('<|begin_of_text|>')
+        eos_token_id = self._pipeline.tokenizer.convert_tokens_to_ids('<|eot_id|>')
+        pad_token_id = self._pipeline.tokenizer.convert_tokens_to_ids('<|eot_id|>')
+
+        # Initialize base class:
+        super().__init__(name,
+            mapping=lambda x: self._pipeline(
+                [{'role':'user', 'content':x}],
+                bos_token_id=bos_token_id,
+                eos_token_id=eos_token_id,
+                pad_token_id=pad_token_id,
+                max_new_tokens=32,
+                do_sample=(top_p is not None) or (temperature is not None),
+                temperature=temperature,
+                top_p=top_p
+            )[0]["generated_text"][-1]["content"]
+        )
