@@ -33,7 +33,7 @@ class TrainerCICLe():
         arguments:
             llm:            Name of the LLM (e.g.: "gpt-3.5-turbo-instruct")
 
-            classifier:     Name of the pre-trained base model (e.g.: "models/...")
+            classifier:     Name of the pre-trained base model (e.g.: "tfidf-lr")
 
             prompt:         The prompt as a Python format string. "{0}" will be replaced with the few-shot samples and "{1}" with the sample to be classified
 
@@ -148,10 +148,7 @@ class TrainerCICLe():
         for t, p in tqdm(zip(self._classifier.last_texts, ps['predictions']),
                          total=len(self._classifier.last_texts),
                          desc='Predicting texts'):
-            if len(p) == 1:
-                predictions.append(p['y'][0])
-
-            else:
+            if len(p) > 1:
                 # build prompt:
                 prompt = self._prompt.format(
                     '\n'.join(['"' + x.replace('"',"'") + f'" {self._divider} {y}'
@@ -161,6 +158,8 @@ class TrainerCICLe():
 
                 # feed through llm:
                 predictions.append(self._llm.predict([prompt]))
+
+            else: predictions.append(p['y'][0])
 
         return predictions
 
@@ -259,7 +258,7 @@ def run(base_name:str, llm_name:str, text_column:str, label_column:str, dataset_
     arguments:
         llm_name:          Name of the LLM (e.g.: "gpt-3.5-turbo-instruct")
 
-        base_name:         Name of the pre-trained base model (e.g.: "models/...")
+        base_name:         Name of the pre-trained base model (e.g.: "tfidf-lr")
 
         prompt:            The prompt as a Python format string. "{0}" will be replaced with the few-shot samples and "{1}" with the sample to be classified
 
@@ -381,7 +380,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Train and/or Evaluate a baseline model.')
     parser.add_argument('base_name',
         type=str,
-        help='name of the pre-trained base model (e.g.: "models/...")'
+        help='name of the pre-trained base model (e.g.: "tfidf-lr")'
     )
     parser.add_argument('llm_name',
         type=str,
