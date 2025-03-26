@@ -33,7 +33,7 @@ class TrainerCICLe():
         arguments:
             llm:            Name of the LLM (e.g.: "gpt-3.5-turbo-instruct")
 
-            classifier:     Name of the pre-trained base model (e.g.: "tfidf-lr")
+            classifier:     Name of the pre-trained base model (e.g.: "models/tfidf-lr/tfidf-lr-hazard-category-0")
 
             prompt:         The prompt as a Python format string. "{0}" will be replaced with the few-shot samples and "{1}" with the sample to be classified
 
@@ -402,6 +402,13 @@ if __name__ == '__main__':
     parser.add_argument('dataset_name',
         type=str,
         help='name of the dataset (e.g.: "incidents")'
+    )
+    parser.add_argument('-i', '--iterations',
+        metavar='I',
+        nargs='+',
+        type=int,
+        default=list(range(5)),
+        help='k-fold iterations'
     )
     parser.add_argument('-nf', '--normalize_fcn',
         metavar='NF',
