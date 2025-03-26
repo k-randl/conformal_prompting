@@ -27,7 +27,7 @@ from typing import Callable, Optional, Tuple, Iterable, Union
 ####################################################################################################
 
 class TrainerCICLe():
-    def __init__(self, classifier:str, llm:Union[str, Callable[[str,],str]], prompt:str, divider:str='->', embedding:Optional[str]=None, normalize_fcn:T_norm=None) -> None:
+    def __init__(self, classifier:str, llm:Union[str, Callable[[str,],str]], prompt:str, divider:str='->', embedding:Optional[str]=None, normalize_fcn:T_norm=None, secret:Optional[str]=None) -> None:
         '''Create a new TrainerCICLe object.
 
         arguments:
@@ -41,9 +41,11 @@ class TrainerCICLe():
 
             embedding:      
 
-            normalize_fcn:  Normalization applied on the results after prediction (default:no normalization)  
+            normalize_fcn:  Normalization applied on the results after prediction (default:no normalization)
+
+            secret:         An optional secret used to access the LLM (for GPT: openAI API-key; for Llama/Gemma: Huggingface API-key)
         '''
-        
+
         # load model:
         self._classifier = EvaluatorConformalSimple(Evaluator.load(dir=classifier, normalize_fcn=normalize_fcn))
 
@@ -55,14 +57,14 @@ class TrainerCICLe():
             self._embedding = self._classifier._base.embedding
 
         else: raise(ValueError('"embedding" needs to be the path to a valid embedding.'))
-        
+
         # get llm:
         if isinstance(llm, str):
-            if llm.lower().startswith('gpt'):            self._llm = GPT(llm)
-            elif llm.lower().startswith('meta-llama'):   self._llm = Llama(llm)
-            elif llm.lower().startswith('google/gemma'): self._llm = Gemma(llm)
+            if llm.lower().startswith('gpt'):            self._llm = GPT(name=llm, secret=secret)
+            elif llm.lower().startswith('meta-llama'):   self._llm = Llama(name=llm, secret=secret)
+            elif llm.lower().startswith('google/gemma'): self._llm = Gemma(name=llm, secret=secret)
             else: raise ValueError(llm)
-        
+
         else: self._llm = llm
 
         self._prompt = prompt
@@ -164,15 +166,17 @@ class TrainerCICLe():
         return predictions
 
     @staticmethod
-    def load(dir:str, normalize_fcn:T_norm=None, **kwargs) -> 'TrainerCICLe':
+    def load(dir:str, normalize_fcn:T_norm=None, secret:Optional[str]=None, **kwargs) -> 'TrainerCICLe':
         '''Loads a model from disk.
 
-            dir:           Path to the directory that contains the model (e.g.: .\models)
+            dir:            Path to the directory that contains the model (e.g.: .\models)
 
-            normalize_fcn: Normalization function used on the predictions [`"max"` | `"sum"` | `"min-max"` | `"softmax"` | `None`]
+            normalize_fcn:  Normalization function used on the predictions [`"max"` | `"sum"` | `"min-max"` | `"softmax"` | `None`]
 
-            
-            returns:       `TrainerClassic` object
+            secret:         An optional secret used to access the LLM (for GPT: openAI API-key; for Llama/Gemma: Huggingface API-key)
+
+
+            returns:        `TrainerClassic` object
         '''
         # load data from file:
         with open(dir + '/model.pickle', 'rb') as file:
@@ -185,7 +189,8 @@ class TrainerCICLe():
             llm           = data['llm_name'],
             prompt        = data['prompt'],
             divider       = data['divider'],
-            normalize_fcn = normalize_fcn
+            normalize_fcn = normalize_fcn,
+            secret        = secret
         )
 
         # Update calibration scores:
