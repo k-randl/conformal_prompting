@@ -108,10 +108,14 @@ class LLM:
         raise NotImplementedError()
 
 class GPT(LLM):
-    def __init__(self, name:str='gpt-3.5-turbo-instruct', temperature:float=0.) -> None:
+    def __init__(self, name:str='gpt-3.5-turbo-instruct', temperature:float=0., secret:Optional[str]=None) -> None:
+        # Get API-key if not specified:
+        if secret is None:
+            secret = getpass.getpass('Enter your OpenAI API-key:')
+
         # Login to OpenAI and create a client:
         from openai import OpenAI
-        self._client = OpenAI(api_key=getpass.getpass('Enter your OpenAI API-key:'))
+        self._client = OpenAI(api_key=secret)
 
         # Initialize base class:
         super().__init__(name,
@@ -123,10 +127,14 @@ class GPT(LLM):
         )
 
 class Gemma(LLM):
-    def __init__(self, name:str='google/gemma-1.1-7b-it', temperature:Optional[float]=None, top_p:Optional[float]=None) -> None:
+    def __init__(self, name:str='google/gemma-1.1-7b-it', temperature:Optional[float]=None, top_p:Optional[float]=None, secret:Optional[str]=None) -> None:
+        # Get API-key if not specified:
+        if secret is None:
+            secret = getpass.getpass('Enter your huggingface API-key:')
+
         # Login to huggingface:
         from huggingface_hub import login
-        login(getpass.getpass('Enter your huggingface API-key:'))
+        login(secret)
 
         # Create a pipeline:
         import torch
@@ -149,10 +157,14 @@ class Gemma(LLM):
         )
 
 class Llama(LLM):
-    def __init__(self, name:str='meta-llama/Meta-Llama-3.1-8B-Instruct', temperature:Optional[float]=None, top_p:Optional[float]=None) -> None:
+    def __init__(self, name:str='meta-llama/Meta-Llama-3.1-8B-Instruct', temperature:Optional[float]=None, top_p:Optional[float]=None, secret:Optional[str]=None) -> None:
+        # Get API-key if not specified:
+        if secret is None:
+            secret = getpass.getpass('Enter your huggingface API-key:')
+
         # Login to huggingface:
         from huggingface_hub import login
-        login(getpass.getpass('Enter your huggingface API-key:'))
+        login(secret)
 
         # Create a pipeline:
         import torch
