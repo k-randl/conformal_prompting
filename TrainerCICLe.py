@@ -256,7 +256,8 @@ def run(base_name:str, llm_name:str, text_column:str, label_column:str, dataset_
         shuffle:           bool            = False,
         train:             bool            = False,
         predict:           bool            = False,
-        eval_explanations: bool            = False
+        eval_explanations: bool            = False,
+        secret:            Optional[str]   = None
     ) -> None:
     '''Train and/or Evaluate a baseline model.
 
@@ -286,6 +287,8 @@ def run(base_name:str, llm_name:str, text_column:str, label_column:str, dataset_
         predict:           Only predict test set (default:False)
 
         eval_explanations: Evaluate attentions against spans (default:False)
+
+        secret:            An optional secret used to access the LLM (for GPT: openAI API-key; for Llama/Gemma: Huggingface API-key)
     '''
     # load mappings:
     label_map = load_mappings(f"data/{dataset_name}/splits/", label_column)
@@ -431,6 +434,12 @@ if __name__ == '__main__':
     parser.add_argument('--eval_explanations',
         action='store_true',
         help='evaluate attentions against spans'
+    )
+    parser.add_argument('-s', '--secret',
+        metavar='S',
+        type=str,
+        default=None,
+        help='An optional secret used to access the LLM (for GPT: openAI API-key; for Llama/Gemma: Huggingface API-key)'
     )
 
     # parse arguments:
