@@ -318,7 +318,8 @@ def run(base_name:str, llm_name:str, text_column:str, label_column:str, dataset_
                 llm=llm_name,
                 prompt=prompt,
                 divider=divider,
-                normalize_fcn=normalize_fcn
+                normalize_fcn=normalize_fcn,
+                secret=secret
             )
             assert len(label_map) == trainer.num_labels
 
