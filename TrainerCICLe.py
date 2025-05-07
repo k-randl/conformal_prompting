@@ -185,7 +185,8 @@ class TrainerCICLe():
         # create evaluator instance:
         trainer =  TrainerCICLe(
             embedding     = data['embedding_type'].load(os.path.join(dir, 'embedding'), **kwargs),
-            classifier    = data['classifier_type'].load(os.path.join(dir, 'classifier'), **kwargs),
+            #classifier    = data['classifier_type'].load(os.path.join(dir, 'classifier'), **kwargs),
+            classifier    = os.path.join(dir, 'classifier'),
             llm           = data['llm_name'],
             prompt        = data['prompt'],
             divider       = data['divider'],
