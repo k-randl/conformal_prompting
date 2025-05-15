@@ -51,6 +51,7 @@ class TrainerCICLe():
 
         # load embedding for similarity computation:
         if embedding is not None:
+            print(embedding)
             self._embedding = Embedding.load(embedding)
 
         elif hasattr(self._classifier._base, 'embedding'):
@@ -194,6 +195,9 @@ class TrainerCICLe():
             normalize_fcn = normalize_fcn,
             secret        = secret
         )
+
+        # Update samples:
+        trainer._samples = data['samples']
 
         # Update calibration scores:
         trainer._classifier.cal_scores = data['cal_scores']

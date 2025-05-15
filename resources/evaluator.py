@@ -247,8 +247,9 @@ class EvaluatorMaxK(EvaluatorMirror):
 class EvaluatorConformal(EvaluatorMirror, metaclass=abc.ABCMeta):
     def _get_predictions(self, data:Optional[T_data], y_pred:Optional[npt.NDArray], y_true:Optional[npt.NDArray]=None, **kwargs) -> Dict[str, any]:
         assert not(((data is None) or (self._model is None)) and (y_pred is None))
+        kwargs_filtered = {kw:kwargs[kw] for kw in kwargs if kw not in ['output_probabilities', 'output_structured']}
         if data is None: return {'labels':y_true, 'probabilities':np.apply_along_axis(self._normalize_fcn, -1, y_pred)}
-        else:            return super().predict(data, output_probabilities=True, output_structured=False, **kwargs)
+        else:            return super().predict(data, output_probabilities=True, output_structured=False, **kwargs_filtered)
 
     def quantile(self, alpha:float) -> float:
         # get number of calibration samples:

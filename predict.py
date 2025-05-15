@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 from resources.evaluator import Evaluator, T_norm
 from resources.data_io import ClassificationDataset
+from TrainerCICLe import TrainerCICLe
 from TrainerClassic import TrainerClassic
 from TrainerTransformer import TrainerTransformer
 
@@ -26,7 +27,7 @@ def predict(model_dir:str, text:Iterable[str], normalize_fcn:T_norm=None) -> Non
     df = pd.DataFrame(data={'text': text})
 
     # create dataset:
-    data = ClassificationDataset(data=df, text_column='text', tokenizer=evaluator.tokenizer)
+    data = (ClassificationDataset(data=df, text_column='text', tokenizer=evaluator.tokenizer, add_texts=True), ['input_ids', 'labels', 'texts'])
 
     # evaluate model:
     outputs = evaluator.predict(data=data, output_spans=False, output_probabilities=False)

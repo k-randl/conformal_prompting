@@ -140,7 +140,10 @@ class Embedding(metaclass=abc.ABCMeta):
             
             returns:   An `Embedding` object.
         '''
-        raise NotImplementedError()
+        files = os.listdir(dir)
+        if 'bow.pickle' in files: return EmbeddingBOW.load(dir, **kwargs)
+        elif 'tf-idf.pickle' in files: return EmbeddingTfIdf.load(dir, **kwargs)
+        else: raise NotImplementedError()
 
     @abc.abstractmethod
     def save(self, dir:str, **kwargs) -> None:
