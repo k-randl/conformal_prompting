@@ -145,10 +145,11 @@ class TrainerCICLe():
             alpha:  Conformity parameter.
         '''
         # get most probable classes using conformal prediction:
-        ps = self._classifier.predict(alpha=alpha, data=data, min_k=1, **kwargs)
+        result = self._classifier.predict(alpha=alpha, data=data, min_k=1, **kwargs)
 
-        predictions = []
-        for t, p in tqdm(zip(self._classifier.last_texts, ps['predictions']),
+        result['candidates'] = result['predictions']
+        result['predictions'] = []
+        for t, p in tqdm(zip(self._classifier.last_texts, result['candidates']),
                          total=len(self._classifier.last_texts),
                          desc='Predicting texts'):
             if len(p) > 1:
@@ -160,11 +161,11 @@ class TrainerCICLe():
                 )
 
                 # feed through llm:
-                predictions.append(self._llm.predict([prompt]))
+                result['predictions'].append(self._llm.predict([prompt]))
 
-            else: predictions.append(p['y'][0])
+            else: result['predictions'].append(p['y'][0])
 
-        return predictions
+        return result
 
     @staticmethod
     def load(dir:str, normalize_fcn:T_norm=None, secret:Optional[str]=None, **kwargs) -> 'TrainerCICLe':
